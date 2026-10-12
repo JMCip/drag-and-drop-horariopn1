@@ -9,7 +9,6 @@ public class MateriaDTO {
 
 	private long id;
 	private ArrayList<Long> idHorarios;
-	
 	private String nombreMateria;
 	private Carrera carrera;
 	private short semestre;

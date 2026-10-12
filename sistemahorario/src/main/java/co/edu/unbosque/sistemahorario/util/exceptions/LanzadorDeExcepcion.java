@@ -1,5 +1,7 @@
 package co.edu.unbosque.sistemahorario.util.exceptions;
 
+import co.edu.unbosque.sistemahorario.util.enums.Dia;
+
 public class LanzadorDeExcepcion {
 
 	public static void verificarEmail(String email) throws InvalidEmailFormatException {
@@ -29,9 +31,9 @@ public class LanzadorDeExcepcion {
 					"Contraseña demasiado debil, debe contener minimo 8 caracterez, numeros, mayusculas y simbolos");
 	}
 
-	public static void verificarFranjaHoraria(int inicio, int fin, int day) throws InvalidTimeSlotException {
+	public static void verificarFranjaHoraria(int inicio, int fin, Dia day) throws InvalidTimeSlotException {
 		
-		if (day < 6) {
+		if (!day.equals(Dia.SABADO)) {
 			if (inicio < 10 && fin <= 12) {
 				if (!(inicio >= 7 && inicio <= 10) || !(fin >= 9 && fin <= 12)) 
 					throw new InvalidTimeSlotException("Las materias entre semana son de 7 a 12 antes del almuerzo");
@@ -49,6 +51,21 @@ public class LanzadorDeExcepcion {
 			if ((inicio < 8 || inicio % 2 != 0) || (fin > 12 || fin % 2 != 0))
 				throw new InvalidTimeSlotException("Las materias de los sabados inician de 8 a 12");
 			
+		}
+	}
+	
+	public static void verificarNombre(String nombre) throws InvalidNameFormatException {
+		if (nombre == null || nombre.isBlank()) {
+			throw new InvalidNameFormatException("El nombre no puede ser nulo ni vacío.");
+		}
+		
+		if (nombre.length() < 2) {
+			throw new InvalidNameFormatException("El nombre no puede ser menor a 2 caracteres");
+		}
+
+		if (!nombre.trim().matches("[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ ]+")) {
+			throw new InvalidNameFormatException("El nombre '" + nombre + "' no es válido. Solo se permiten letras, espacios, tildes y ñ. "
+							+ "No se permiten números ni símbolos.");
 		}
 	}
 	
