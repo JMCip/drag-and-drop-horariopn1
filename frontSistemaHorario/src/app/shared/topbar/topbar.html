@@ -1,0 +1,29 @@
+<header class="barra-superior">
+  <div class="topbar-izq">
+    <div class="logo-box">
+      <i class="fa-solid fa-table-cells"></i>
+    </div>
+    <span class="nombre-app">Editor de Horarios</span>
+  </div>
+
+  <nav class="topbar-centro" aria-label="Navegación del rol">
+    <button
+      *ngFor="let p of pestanas"
+      type="button"
+      class="btn-pestana-nav"
+      [class.activa]="pestanaActiva === p.id"
+      (click)="seleccionar(p.id)">
+      <i *ngIf="p.icono" class="fa-solid {{ p.icono }}"></i>
+      <span>{{ p.etiqueta }}</span>
+    </button>
+  </nav>
+
+  <div class="topbar-der">
+    <span class="nombre-usuario">{{ usuario.nombre }}</span>
+    <span class="chip-rol">{{ usuario.rol }}</span>
+    <button type="button" class="btn-salir" (click)="cerrarSesion()" title="Cerrar sesión">
+      <i class="fa-solid fa-power-off"></i>
+      <span class="texto-salir">Cerrar sesión</span>
+    </button>
+  </div>
+</header>

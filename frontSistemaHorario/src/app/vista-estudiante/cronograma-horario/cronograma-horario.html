@@ -1,0 +1,121 @@
+<div class="area-cronograma">
+  <header class="barra-acciones">
+    <div class="acciones-izq">
+      <button
+        type="button"
+        class="btn btn-secundario"
+        [disabled]="pilaDeshacer.length === 0"
+        (click)="deshacer()"
+        title="Deshacer última acción (Ctrl + Z)">
+        <i class="fa-solid fa-rotate-left"></i>
+        <span>Deshacer</span>
+      </button>
+      <div class="resumen-contador">
+        <strong>{{ seccionesUbicadas.length }}</strong> secciones ·
+        <span [class.texto-conflicto]="seccionConflictoId !== null">
+          {{ seccionConflictoId !== null ? '1 choque detectado' : '0 choques' }}
+        </span>
+      </div>
+    </div>
+
+    <button
+      type="button"
+      class="btn btn-primario"
+      [disabled]="seccionesUbicadas.length === 0 || seccionConflictoId !== null"
+      (click)="mostrarModalConfirmar = true">
+      <i class="fa-solid fa-floppy-disk"></i>
+      <span>Guardar y exportar</span>
+    </button>
+  </header>
+
+  <section
+    class="contenedor-grilla"
+    [class.zona-destino-activa]="seccionArrastrando !== null"
+    (dragover)="permitirSoltar($event)"
+    (drop)="soltarEnGrilla($event)">
+
+    <div class="toast-notificacion" *ngIf="toast" [ngClass]="toast.tipo" role="alert">
+      <i class="fa-solid"
+         [class.fa-triangle-exclamation]="toast.tipo === 'error'"
+         [class.fa-circle-info]="toast.tipo === 'info'"></i>
+      <div><strong>{{ toast.titulo }}</strong> {{ toast.mensaje }}</div>
+      <button type="button" class="btn-cerrar-toast" (click)="toast = null">✕</button>
+    </div>
+
+    <div class="tabla-scroll">
+      <table class="grilla-horario">
+        <thead>
+        <tr>
+          <th class="col-hora">Hora</th>
+          <th *ngFor="let dia of dias">{{ dia }}</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let hora of horas">
+          <td class="celda-hora tabular-nums">{{ hora < 10 ? '0' + hora : hora }}:00</td>
+          <td
+            *ngFor="let dia of dias"
+            class="celda-grilla"
+            [class.celda-bloqueada-patron]="esCeldaBloqueada(dia, hora)"
+            [class.celda-previa]="esFranjaPrevia(dia, hora)">
+
+            <div class="etiqueta-bloqueo" *ngIf="hora === 13 && dia === 'Lun'">
+              <i class="fa-solid fa-lock"></i> Almuerzo (13:00–14:00)
+            </div>
+
+            <ng-container *ngIf="obtenerSeccionEnCelda(dia, hora) as secUbicada">
+              <div
+                *ngIf="esInicioDeBloque(secUbicada, dia, hora)"
+                class="bloque-ubicado"
+                [style.height.px]="obtenerDuracionBloque(secUbicada, dia, hora) * 46 - 4"
+                [class.en-conflicto]="secUbicada.id === seccionConflictoId || secUbicada.id === candidataEnConflicto?.id"
+                [class.animar-choque]="secUbicada.id === seccionConflictoId || secUbicada.id === candidataEnConflicto?.id">
+
+                <div class="cabecera-bloque">
+                  <span class="nombre-bloque">{{ secUbicada.nombreMateria }}</span>
+                  <button
+                    *ngIf="secUbicada.id !== candidataEnConflicto?.id"
+                    type="button"
+                    class="btn-quitar-bloque"
+                    (click)="quitarSeccion(secUbicada)">✕</button>
+                </div>
+                <span class="meta-bloque tabular-nums">{{ secUbicada.codigoMateria }} · G{{ secUbicada.grupo }}</span>
+                <span class="docente-bloque">{{ secUbicada.docente }}</span>
+                <span class="badge-conflicto" *ngIf="secUbicada.id === seccionConflictoId || secUbicada.id === candidataEnConflicto?.id">
+                    ⚠ CONFLICTO
+                  </span>
+              </div>
+            </ng-container>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <footer class="leyenda-grilla">
+      <span class="item-leyenda"><i class="cuadro libre"></i> Libre</span>
+      <span class="item-leyenda"><i class="cuadro ocupada"></i> Ocupada</span>
+      <span class="item-leyenda"><i class="cuadro conflicto"></i> Conflicto (⚠)</span>
+      <span class="item-leyenda"><i class="cuadro celda-bloqueada-patron"></i> Bloqueada</span>
+    </footer>
+  </section>
+</div>
+
+
+<div class="modal-backdrop" *ngIf="mostrarModalConfirmar">
+  <div class="modal-card">
+    <h3>Confirmar inscripción de horario</h3>
+    <p>Se inscribirán <strong>{{ seccionesUbicadas.length }}</strong> secciones validadas sin choques:</p>
+    <ul class="lista-resumen-modal">
+      <li *ngFor="let s of seccionesUbicadas">
+        <strong>{{ s.nombreMateria }}</strong> ({{ s.codigoMateria }} · Grupo {{ s.grupo }})
+      </li>
+    </ul>
+    <div class="acciones-modal">
+      <button type="button" class="btn btn-secundario" (click)="mostrarModalConfirmar = false">Cancelar</button>
+      <button type="button" class="btn btn-primario" [disabled]="guardando" (click)="confirmarGuardado()">
+        {{ guardando ? 'Guardando...' : 'Confirmar inscripción' }}
+      </button>
+    </div>
+  </div>
+</div>

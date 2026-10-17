@@ -1,0 +1,35 @@
+<section class="lista-acordeon">
+  <div class="acordeon-materia" *ngFor="let mat of materiasDictadas">
+    <button type="button" class="cabecera-acordeon" (click)="mat.abierto = !mat.abierto">
+      <span><strong>{{ mat.nombre }} ({{ mat.codigo }})</strong> — {{ mat.grupos.length }} grupo(s)</span>
+      <i class="fa-solid" [ngClass]="mat.abierto ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+    </button>
+
+    <div class="cuerpo-acordeon" *ngIf="mat.abierto">
+      <div class="tarjeta-grupo" *ngFor="let g of mat.grupos">
+        <div class="info-grupo">
+          <h4>Grupo {{ g.numero }}</h4>
+          <span class="tabular-nums">{{ g.horario }}</span>
+          <span class="chip-inscritos">{{ g.estudiantes.length }} estudiantes inscritos</span>
+        </div>
+
+        <table class="tabla-estudiantes">
+          <thead>
+          <tr>
+            <th>Nombre del estudiante</th>
+            <th>Correo institucional</th>
+            <th>Programa académico</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr *ngFor="let est of g.estudiantes">
+            <td>{{ est.nombre }}</td>
+            <td>{{ est.correo }}</td>
+            <td>{{ est.carrera }}</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>

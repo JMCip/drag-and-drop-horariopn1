@@ -1,0 +1,27 @@
+.contenedor-vista-estudiante {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.layout-armar {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 310px 1fr;
+  gap: 16px;
+  padding: 16px 24px;
+  min-height: 0;
+}
+
+.layout-inscrito {
+  flex: 1;
+  overflow-y: auto;
+}
+
+@media (max-width: 900px) {
+  .layout-armar {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+}

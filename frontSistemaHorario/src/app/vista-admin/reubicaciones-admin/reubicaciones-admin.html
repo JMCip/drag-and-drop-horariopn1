@@ -1,0 +1,24 @@
+<section class="tarjeta-reubicacion">
+  <h3>A) Mover estudiante de grupo (RF17)</h3>
+  <div class="campo">
+    <label>Estudiante</label>
+    <input type="text" [(ngModel)]="estudianteSeleccionado" />
+  </div>
+  <div class="campo">
+    <label>Materia y grupo origen</label>
+    <input type="text" value="Bases de Datos (BD-101) — Grupo 1" disabled />
+  </div>
+  <div class="campo">
+    <label>Grupo destino (misma materia)</label>
+    <select [(ngModel)]="grupoDestinoEstudiante">
+      <option value="2">BD-101 · Grupo 2 (Mar/Jue 07:00–09:00) — Sin choque</option>
+      <option value="3">BD-101 · Grupo 3 (Simular Choque 409)</option>
+    </select>
+  </div>
+
+  <div class="alerta-admin" *ngIf="resultadoReubicacion" [ngClass]="resultadoReubicacion.exito ? 'exito' : 'error'">
+    {{ resultadoReubicacion.mensaje }}
+  </div>
+
+  <button type="button" class="btn btn-primario" (click)="moverEstudiante()">Mover estudiante</button>
+</section>

@@ -1,0 +1,11 @@
+<app-topbar
+  [pestanas]="pestanas"
+  [pestanaActiva]="pestanaActiva"
+  (cambiarPestana)="pestanaActiva = $event">
+</app-topbar>
+
+<main class="contenedor-admin">
+  <app-dashboard-admin *ngIf="pestanaActiva === 'panel'"></app-dashboard-admin>
+  <app-registro-usuarios *ngIf="pestanaActiva === 'registrar'"></app-registro-usuarios>
+  <app-reubicaciones-admin *ngIf="pestanaActiva === 'reubicaciones'"></app-reubicaciones-admin>
+</main>
