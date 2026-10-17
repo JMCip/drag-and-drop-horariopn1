@@ -1,0 +1,16 @@
+<section class="tarjeta-blanca">
+  <div class="cabecera-seccion">
+    <h2>Mi horario y disponibilidad semanal</h2>
+    <div class="leyenda-prof">
+      <span><i class="badge-muestra dictando"></i> Clase asignada</span>
+      <span><i class="badge-muestra disponible"></i> Disponible para dictar</span>
+    </div>
+  </div>
+  <p class="texto-ayuda">Vista de solo lectura de tus bloques asignados y disponibilidad reportada.</p>
+  <div class="resumen-franjas-prof">
+    <div class="item-clase-prof" *ngFor="let c of clasesAsignadas">
+      <strong>{{ c.materia }}</strong>
+      <span class="tabular-nums">{{ c.franja }}</span>
+    </div>
+  </div>
+</section>

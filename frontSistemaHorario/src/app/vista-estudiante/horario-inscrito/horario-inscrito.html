@@ -1,0 +1,47 @@
+<div class="contenedor-inscrito">
+  <div *ngIf="horarioInscrito.length === 0" class="estado-vacio-inscrito">
+    <i class="fa-regular fa-calendar-xmark"></i>
+    <h2>Aún no has inscrito un horario</h2>
+    <p>Ubica tus secciones en el editor y confirma tu inscripción para consultarla aquí.</p>
+    <button type="button" class="btn btn-primario" (click)="irAArmar.emit()">
+      Ir a Armar horario
+    </button>
+  </div>
+
+  <div *ngIf="horarioInscrito.length > 0">
+    <div class="cabecera-inscrito">
+      <div>
+        <h2>Mi horario inscrito</h2>
+        <p>{{ horarioInscrito.length }} materias inscritas oficialmente</p>
+      </div>
+      <button type="button" class="btn btn-secundario" (click)="descargarJSON()">
+        <i class="fa-solid fa-download"></i> Descargar JSON
+      </button>
+    </div>
+
+    <div class="tarjeta-tabla-resumen">
+      <table class="tabla-resumen">
+        <thead>
+        <tr>
+          <th>Código</th>
+          <th>Materia</th>
+          <th>Grupo</th>
+          <th>Docente</th>
+          <th>Horario</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let s of horarioInscrito">
+          <td class="tabular-nums"><strong>{{ s.codigoMateria }}</strong></td>
+          <td>{{ s.nombreMateria }}</td>
+          <td>Grupo {{ s.grupo }}</td>
+          <td>{{ s.docente }}</td>
+          <td class="tabular-nums">
+            <span class="chip-franja" *ngFor="let f of s.franjas">{{ formatearFranja(f) }}</span>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

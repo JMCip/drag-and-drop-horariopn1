@@ -1,0 +1,83 @@
+.tarjeta-formulario-admin {
+  background: #FFFFFF;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radius-card);
+  padding: 24px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.selector-segmentado {
+  display: flex;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.selector-segmentado button {
+  flex: 1;
+  padding: 8px 16px;
+  border: 1px solid var(--color-borde);
+  background: var(--color-fondo);
+  border-radius: var(--radius-btn);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.selector-segmentado button.activo {
+  background: var(--color-acento);
+  color: #FFFFFF;
+  border-color: var(--color-acento);
+}
+
+.form-registro {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.campo input, .campo select {
+  padding: 10px;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radius-btn);
+}
+
+.checklist-pass {
+  list-style: none;
+  font-size: 12px;
+  color: var(--color-texto-sec);
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.checklist-pass li.cumplido {
+  color: var(--color-ocupada);
+  font-weight: 600;
+}
+
+.alerta-admin {
+  padding: 10px 14px;
+  border-radius: var(--radius-btn);
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.alerta-admin.error {
+  background: var(--color-conflicto-bg);
+  color: var(--color-conflicto);
+  border: 1px solid var(--color-conflicto);
+}
+
+.alerta-admin.exito {
+  background: var(--color-ocupada-bg);
+  color: var(--color-acento);
+  border: 1px solid var(--color-ocupada);
+}

@@ -1,0 +1,70 @@
+<div class="contenedor-login">
+  <div class="tarjeta-login">
+    <div class="encabezado-login">
+      <div class="icono-institucional">
+        <i class="fa-solid fa-table-cells"></i>
+      </div>
+      <h1 class="titulo-login">Editor de Horarios</h1>
+      <p class="subtitulo-login">Programa Ingeniería de Sistemas · Universidad El Bosque</p>
+    </div>
+
+    <div class="alerta-error" *ngIf="mensajeError" role="alert">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <span>{{ mensajeError }}</span>
+    </div>
+
+    <form (ngSubmit)="iniciarSesion()" class="formulario-login">
+      <div class="grupo-campo">
+        <label for="correoInput">Correo institucional</label>
+        <input
+          id="correoInput"
+          type="email"
+          name="correo"
+          [(ngModel)]="correo"
+          placeholder="nombre@unbosque.edu.co"
+          [disabled]="cargando"
+          required />
+      </div>
+
+      <div class="grupo-campo">
+        <label for="passInput">Contraseña</label>
+        <div class="input-con-icono">
+          <input
+            id="passInput"
+            [type]="mostrarPass ? 'text' : 'password'"
+            name="contrasena"
+            [(ngModel)]="contrasena"
+            placeholder="••••••••"
+            [disabled]="cargando"
+            required />
+          <button
+            type="button"
+            class="btn-ojo"
+            (click)="mostrarPass = !mostrarPass"
+            aria-label="Mostrar u ocultar contraseña">
+            <i class="fa-regular" [class.fa-eye]="!mostrarPass" [class.fa-eye-slash]="mostrarPass"></i>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primario btn-full" [disabled]="cargando">
+        <i *ngIf="cargando" class="fa-solid fa-circle-notch fa-spin"></i>
+        <span>{{ cargando ? 'Validando...' : 'Iniciar sesión' }}</span>
+      </button>
+    </form>
+
+    <p class="nota-secretaria">
+      ¿No tienes cuenta? Contacta a la <strong>Secretaría Académica</strong>.
+    </p>
+
+    <!-- Barra de acceso rápido para pruebas de la demo -->
+    <div class="caja-demo">
+      <span class="titulo-demo">Acceso rápido (Demo local):</span>
+      <div class="botones-demo">
+        <button type="button" (click)="cargarCredencialesDemo('estudiante')">Estudiante</button>
+        <button type="button" (click)="cargarCredencialesDemo('profesor')">Profesor</button>
+        <button type="button" (click)="cargarCredencialesDemo('admin')">Admin</button>
+      </div>
+    </div>
+  </div>
+</div>

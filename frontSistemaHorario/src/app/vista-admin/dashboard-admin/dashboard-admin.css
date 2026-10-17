@@ -1,0 +1,66 @@
+.fila-metricas {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.tarjeta-resumen {
+  background: #FFFFFF;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radius-card);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.valor-resumen {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-acento);
+}
+
+.etiqueta-resumen {
+  font-size: 13px;
+  color: var(--color-texto-sec);
+}
+
+.tarjeta-listados {
+  background: #FFFFFF;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radius-card);
+  padding: 24px;
+}
+
+.sub-pestanas {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.sub-pestanas button {
+  padding: 8px 16px;
+  border: 1px solid var(--color-borde);
+  background: var(--color-fondo);
+  border-radius: var(--radius-btn);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.sub-pestanas button.activa {
+  background: var(--color-acento);
+  color: #FFFFFF;
+  border-color: var(--color-acento);
+}
+
+.tabla-admin {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.tabla-admin th, .tabla-admin td {
+  padding: 12px;
+  border-bottom: 1px solid var(--color-borde);
+}

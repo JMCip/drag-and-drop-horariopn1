@@ -1,0 +1,43 @@
+<section class="tarjeta-formulario-admin">
+  <h2>Registrar nuevo usuario</h2>
+  <p class="sub-form">Creación exclusiva por parte de la Secretaría Académica (RF14, RF21).</p>
+
+  <div class="selector-segmentado">
+    <button type="button" [class.activo]="tipoNuevoUsuario === 'ESTUDIANTE'" (click)="tipoNuevoUsuario = 'ESTUDIANTE'">Estudiante</button>
+    <button type="button" [class.activo]="tipoNuevoUsuario === 'PROFESOR'" (click)="tipoNuevoUsuario = 'PROFESOR'">Profesor</button>
+  </div>
+
+  <div class="alerta-admin error" *ngIf="mensajeRegistroError">⚠ {{ mensajeRegistroError }}</div>
+  <div class="alerta-admin exito" *ngIf="mensajeRegistroExito">✓ {{ mensajeRegistroExito }}</div>
+
+  <form (ngSubmit)="registrarUsuario()" class="form-registro">
+    <div class="campo">
+      <label>Nombre completo</label>
+      <input type="text" [(ngModel)]="nombreNuevo" name="nombre" placeholder="Ej. Ana María Gómez" required />
+    </div>
+
+    <div class="campo">
+      <label>Correo (@unbosque.edu.co o @gmail.com)</label>
+      <input type="email" [(ngModel)]="correoNuevo" name="correo" placeholder="usuario@unbosque.edu.co" required />
+    </div>
+
+    <div class="campo" *ngIf="tipoNuevoUsuario === 'ESTUDIANTE'">
+      <label>Carrera (RF21)</label>
+      <select [(ngModel)]="carreraNueva" name="carrera">
+        <option *ngFor="let c of carrerasElBosque" [value]="c">{{ c }}</option>
+      </select>
+    </div>
+
+    <div class="campo">
+      <label>Contraseña</label>
+      <input type="password" [(ngModel)]="passNueva" name="pass" placeholder="Mínimo 8 caracteres" required />
+      <ul class="checklist-pass">
+        <li [class.cumplido]="passLongitudOk">✓ Mínimo 8 caracteres</li>
+        <li [class.cumplido]="passTieneLetraYNumero">✓ Letras y números</li>
+        <li [class.cumplido]="passTieneSimbolo">✓ Al menos un símbolo (@, #, $, *, etc.)</li>
+      </ul>
+    </div>
+
+    <button type="submit" class="btn btn-primario">Registrar usuario</button>
+  </form>
+</section>

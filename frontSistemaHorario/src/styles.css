@@ -1,1 +1,111 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  /* Paleta Colores */
+  --color-libre: #FFFFFF;
+  --color-ocupada: #2E9E5B;
+  --color-ocupada-bg: #E3F4EA;
+  --color-conflicto: #8B1E3F;
+  --color-conflicto-bg: #F6E1E8;
+  --color-bloqueada: #E5E7EB;
+  --color-acento: #1F5C4A;
+  --color-acento-hover: #174638;
+  --color-texto: #1F2937;
+  --color-texto-sec: #6B7280;
+  --color-fondo: #F5F6F8;
+  --color-borde: #D1D5DB;
+
+  /* Espaciado y Bordes */
+  --radius-card: 8px;
+  --radius-btn: 6px;
+  --shadow-suave: 0 2px 6px rgba(0, 0, 0, 0.06);
+  --shadow-drag: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  background-color: var(--color-fondo);
+  color: var(--color-texto);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Números tabulares para códigos y horas */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Patrón de rayas diagonales para celdas bloqueadas / almuerzo  */
+.celda-bloqueada-patron {
+  background-color: var(--color-bloqueada);
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 6px,
+    rgba(107, 114, 128, 0.12) 6px,
+    rgba(107, 114, 128, 0.12) 12px
+  );
+}
+
+/* Botones Transversales */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--radius-btn);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+}
+
+.btn:disabled {
+  background-color: #D1D5DB !important;
+  color: #6B7280 !important;
+  border-color: #D1D5DB !important;
+  cursor: not-allowed;
+  box-shadow: none !important;
+}
+
+.btn-primario {
+  background-color: var(--color-acento);
+  color: #FFFFFF;
+}
+
+.btn-primario:hover:not(:disabled) {
+  background-color: var(--color-acento-hover);
+}
+
+.btn-secundario {
+  background-color: #FFFFFF;
+  color: var(--color-acento);
+  border-color: var(--color-acento);
+}
+
+.btn-secundario:hover:not(:disabled) {
+  background-color: var(--color-ocupada-bg);
+}
+
+.btn-peligro {
+  background-color: var(--color-conflicto);
+  color: #FFFFFF;
+}
+
+/* Animación de vibración para choques*/
+@keyframes shakeConflict {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-5px); }
+  40%, 80% { transform: translateX(5px); }
+}
+
+.animar-choque {
+  animation: shakeConflict 0.4s ease-in-out;
+}

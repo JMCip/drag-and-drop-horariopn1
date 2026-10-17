@@ -1,0 +1,77 @@
+<aside class="panel-secciones">
+  <div class="cabecera-panel">
+    <h2 class="titulo-panel">
+      Secciones disponibles
+      <span class="contador-secciones">({{ seccionesDisponiblesFiltradas.length }})</span>
+    </h2>
+    <button
+      *ngIf="textoBusqueda || semestreFiltro"
+      type="button"
+      class="btn-limpiar-filtro"
+      (click)="limpiarFiltros()">
+      Limpiar
+    </button>
+  </div>
+
+  <div class="filtros-panel">
+    <div class="buscador-box">
+      <i class="fa-solid fa-magnifying-glass icono-lupa"></i>
+      <input
+        type="text"
+        [(ngModel)]="textoBusqueda"
+        placeholder="Buscar por nombre o código..." />
+    </div>
+
+    <select [(ngModel)]="semestreFiltro" class="select-nivel" aria-label="Filtrar por semestre">
+      <option value="">Nivel: Todos los semestres</option>
+      <option value="2">Semestre 2</option>
+      <option value="4">Semestre 4</option>
+      <option value="5">Semestre 5</option>
+      <option value="6">Semestre 6</option>
+    </select>
+  </div>
+
+  <div class="lista-grupos-materia">
+    <div class="grupo-materia" *ngFor="let grupo of materiasAgrupadas">
+      <button type="button" class="encabezado-materia" (click)="toggleMateria(grupo.codigo)">
+        <span><strong>{{ grupo.nombre }}</strong> — {{ grupo.secciones.length }} grupo(s)</span>
+        <i class="fa-solid" [ngClass]="materiasPlegadas[grupo.codigo] ? 'fa-chevron-right' : 'fa-chevron-down'"></i>
+      </button>
+
+      <div class="contenedor-tarjetas" *ngIf="!materiasPlegadas[grupo.codigo]">
+        <article
+          class="tarjeta-seccion"
+          *ngFor="let sec of grupo.secciones"
+          draggable="true"
+          (dragstart)="iniciarArrastre(sec)"
+          (dragend)="finalizarArrastre()">
+          <div class="asa-arrastre" title="Arrastrar a la grilla">⋮⋮</div>
+          <div class="cuerpo-tarjeta">
+            <div class="fila-superior-tarjeta">
+              <h3 class="nombre-materia">{{ sec.nombreMateria }}</h3>
+              <button
+                type="button"
+                class="btn-agregar-accesible"
+                (click)="agregarPorBoton(sec)">
+                + Agregar
+              </button>
+            </div>
+            <p class="codigo-grupo tabular-nums">{{ sec.codigoMateria }} · Grupo {{ sec.grupo }}</p>
+            <p class="docente-tarjeta"><i class="fa-regular fa-user"></i> {{ sec.docente }}</p>
+            <div class="chips-horario">
+              <span class="chip-franja tabular-nums" *ngFor="let f of sec.franjas">
+                {{ formatearFranja(f) }}
+              </span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <div class="estado-vacio-panel" *ngIf="materiasAgrupadas.length === 0">
+      <i class="fa-solid fa-folder-open"></i>
+      <p>No hay secciones que coincidan con tu búsqueda</p>
+      <button type="button" class="btn btn-secundario" (click)="limpiarFiltros()">Limpiar filtros</button>
+    </div>
+  </div>
+</aside>

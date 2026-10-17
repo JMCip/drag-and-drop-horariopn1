@@ -1,0 +1,26 @@
+<div class="contenedor-vista-estudiante">
+  <app-topbar
+    [pestanas]="pestanas"
+    [pestanaActiva]="pestanaActiva"
+    (cambiarPestana)="pestanaActiva = $event">
+  </app-topbar>
+
+  <main class="layout-armar" *ngIf="pestanaActiva === 'armar'">
+    <app-sidebar-secciones
+      [todasLasSecciones]="todasLasSecciones"
+      [seccionesUbicadas]="seccionesUbicadas">
+    </app-sidebar-secciones>
+
+    <app-cronograma-horario
+      [(seccionesUbicadas)]="seccionesUbicadas"
+      (horarioGuardado)="actualizarInscrito($event)">
+    </app-cronograma-horario>
+  </main>
+
+  <main class="layout-inscrito" *ngIf="pestanaActiva === 'inscrito'">
+    <app-horario-inscrito
+      [horarioInscrito]="horarioInscrito"
+      (irAArmar)="pestanaActiva = 'armar'">
+    </app-horario-inscrito>
+  </main>
+</div>

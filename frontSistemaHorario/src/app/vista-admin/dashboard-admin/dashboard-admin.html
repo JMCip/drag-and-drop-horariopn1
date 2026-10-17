@@ -1,0 +1,50 @@
+<section class="seccion-panel">
+  <div class="fila-metricas">
+    <div class="tarjeta-resumen">
+      <span class="valor-resumen tabular-nums">6</span>
+      <span class="etiqueta-resumen">Total Usuarios</span>
+    </div>
+    <div class="tarjeta-resumen">
+      <span class="valor-resumen tabular-nums">3</span>
+      <span class="etiqueta-resumen">Estudiantes</span>
+    </div>
+    <div class="tarjeta-resumen">
+      <span class="valor-resumen tabular-nums">2</span>
+      <span class="etiqueta-resumen">Profesores</span>
+    </div>
+    <div class="tarjeta-resumen">
+      <span class="valor-resumen tabular-nums">1</span>
+      <span class="etiqueta-resumen">Admins</span>
+    </div>
+  </div>
+
+  <div class="tarjeta-listados">
+    <div class="sub-pestanas">
+      <button type="button" [class.activa]="subPestanaListado === 'estudiantes'" (click)="subPestanaListado = 'estudiantes'">Estudiantes</button>
+      <button type="button" [class.activa]="subPestanaListado === 'profesores'" (click)="subPestanaListado = 'profesores'">Profesores</button>
+      <button type="button" [class.activa]="subPestanaListado === 'materias'" (click)="subPestanaListado = 'materias'">Materias</button>
+    </div>
+
+    <table class="tabla-admin">
+      <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Correo</th>
+        <th>Detalle / Carrera</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td>Jose Manuel Cipagauta</td>
+        <td>jcipagauta&#64;unbosque.edu.co</td>
+        <td>Ingeniería de Sistemas · 4 materias</td>
+      </tr>
+      <tr>
+        <td>Diego C</td>
+        <td>Diego&#64;unbosque.edu.co</td>
+        <td>Docente · Bases de Datos, Ing. Software I</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

@@ -1,0 +1,54 @@
+.lista-acordeon {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.acordeon-materia {
+  background: #FFFFFF;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.cabecera-acordeon {
+  width: 100%;
+  padding: 16px 20px;
+  background: #F9FAFB;
+  border: none;
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.cuerpo-acordeon {
+  padding: 20px;
+}
+
+.info-grupo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.chip-inscritos {
+  background: var(--color-ocupada-bg);
+  color: var(--color-acento);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tabla-estudiantes {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.tabla-estudiantes th, .tabla-estudiantes td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--color-borde);
+}
