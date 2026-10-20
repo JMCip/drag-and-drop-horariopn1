@@ -11,16 +11,24 @@ import org.springframework.stereotype.Service;
 import co.edu.unbosque.sistemahorario.dto.AdminDTO;
 import co.edu.unbosque.sistemahorario.entity.Admin;
 import co.edu.unbosque.sistemahorario.repository.AdminRepository;
+import co.edu.unbosque.sistemahorario.repository.EstudianteRepository;
+import co.edu.unbosque.sistemahorario.repository.ProfesorRepository;
 import co.edu.unbosque.sistemahorario.util.exceptions.InvalidEmailFormatException;
 import co.edu.unbosque.sistemahorario.util.exceptions.InvalidPasswordException;
 import co.edu.unbosque.sistemahorario.util.exceptions.LanzadorDeExcepcion;
 
 @Service
 public class AdminService implements CRUDOPeration<AdminDTO>{
-
+	
 	@Autowired
 	private AdminRepository admRepo;
 	
+	@Autowired
+	private ProfesorRepository profRepo;
+	
+	@Autowired
+	
+	private EstudianteRepository estRepo;
 	@Autowired
 	private ModelMapper mapper;
 
@@ -40,7 +48,7 @@ public class AdminService implements CRUDOPeration<AdminDTO>{
 			return 2;
 		}
 		
-		if(admRepo.existByCorreo(data.getCorreo())) 
+		if(profRepo.existByCorreo(data.getCorreo()) || estRepo.existByCorreo(data.getCorreo()) || admRepo.existByCorreo(data.getCorreo()))
 			return 3;
 		
 		admRepo.save(mapper.map(data, Admin.class));
@@ -52,7 +60,7 @@ public class AdminService implements CRUDOPeration<AdminDTO>{
 		List<Admin> entityList = (List<Admin>) admRepo.findAll();
 		List<AdminDTO> dtoList = new ArrayList<>();
 		
-		entityList.forEach((entity)-> {
+		entityList.forEach((entity) -> {
 			AdminDTO dto = mapper.map(entity, AdminDTO.class);
 			dtoList.add(dto);
 		});
@@ -88,11 +96,14 @@ public class AdminService implements CRUDOPeration<AdminDTO>{
 			return 2;
 		}
 		
-		if(admRepo.existByCorreo(data.getCorreo())) 
+		if(profRepo.existByCorreo(data.getCorreo()) || estRepo.existByCorreo(data.getCorreo()))
 			return 3;
 		
 		if(find.isPresent()) {
 			Admin temp = find.get();
+			
+			if(admRepo.existByCorreo(data.getCorreo()) && temp.getCorreo() != data.getCorreo())
+				return 5;
 			
 			temp.setCorreo(data.getCorreo());
 			temp.setContrasenia(data.getContrasenia());

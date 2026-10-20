@@ -1,6 +1,7 @@
 package co.edu.unbosque.sistemahorario.dto;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Objects;
 
 import co.edu.unbosque.sistemahorario.util.enums.Carrera;
@@ -8,21 +9,31 @@ import co.edu.unbosque.sistemahorario.util.enums.Carrera;
 public class MateriaDTO {
 
 	private long id;
-	private ArrayList<Long> idHorarios;
+	private int [] inicio;
+	private int [] fin;
 	private String nombreMateria;
 	private Carrera carrera;
 	private short semestre;
 	private Long idProfesorAsignado;
 	private ArrayList<Long> listaIdEstudiantes;
 	
-	
 	public MateriaDTO() {
 		super();
 	}
 
-	public MateriaDTO(ArrayList<Long> idHorarios, String nombreMateria, Carrera carrera, short semestre,
+
+	public MateriaDTO(int[] inicio, int[] fin, String nombreMateria, Carrera carrera, short semestre) {
+		this.inicio = inicio;
+		this.fin = fin;
+		this.nombreMateria = nombreMateria;
+		this.carrera = carrera;
+		this.semestre = semestre;
+	}
+
+	public MateriaDTO(int[] inicio, int[] fin, String nombreMateria, Carrera carrera, short semestre,
 			Long idProfesorAsignado, ArrayList<Long> listaIdEstudiantes) {
-		this.idHorarios = idHorarios;
+		this.inicio = inicio;
+		this.fin = fin;
 		this.nombreMateria = nombreMateria;
 		this.carrera = carrera;
 		this.semestre = semestre;
@@ -30,13 +41,6 @@ public class MateriaDTO {
 		this.listaIdEstudiantes = listaIdEstudiantes;
 	}
 
-	public MateriaDTO(ArrayList<Long> idHorarios, String nombreMateria, Carrera carrera, short semestre) {
-		this.idHorarios = idHorarios;
-		this.nombreMateria = nombreMateria;
-		this.carrera = carrera;
-		this.semestre = semestre;
-	}
-	
 	public long getId() {
 		return id;
 	}
@@ -45,12 +49,20 @@ public class MateriaDTO {
 		this.id = id;
 	}
 
-	public ArrayList<Long> getIdHorarios() {
-		return idHorarios;
+	public int[] getInicio() {
+		return inicio;
 	}
 
-	public void setIdHorarios(ArrayList<Long> idHorarios) {
-		this.idHorarios = idHorarios;
+	public void setInicio(int[] inicio) {
+		this.inicio = inicio;
+	}
+
+	public int[] getFin() {
+		return fin;
+	}
+
+	public void setFin(int[] fin) {
+		this.fin = fin;
 	}
 
 	public String getNombreMateria() {
@@ -95,9 +107,10 @@ public class MateriaDTO {
 
 	@Override
 	public String toString() {
-		return "MateriaDTO " + 
+		return "Materia " + 
 				"\nId: " + id + 
-				"\nId horarios: " + idHorarios + 
+				"\nInicio: " + inicio + 
+				"\nFin: " + fin +	
 				"\nNombre materia:" + nombreMateria + 
 				"\nCarrera: " + carrera + 
 				"\nSemestre: " + semestre + 
@@ -105,10 +118,18 @@ public class MateriaDTO {
 				"\nLista id estudiantes: " + listaIdEstudiantes;
 	}
 
+
 	@Override
 	public int hashCode() {
-		return Objects.hash(carrera, id, idHorarios, idProfesorAsignado, listaIdEstudiantes, nombreMateria, semestre);
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + Arrays.hashCode(fin);
+		result = prime * result + Arrays.hashCode(inicio);
+		result = prime * result
+				+ Objects.hash(carrera, id, idProfesorAsignado, listaIdEstudiantes, nombreMateria, semestre);
+		return result;
 	}
+
 
 	@Override
 	public boolean equals(Object obj) {
@@ -119,8 +140,8 @@ public class MateriaDTO {
 		if (getClass() != obj.getClass())
 			return false;
 		MateriaDTO other = (MateriaDTO) obj;
-		return carrera == other.carrera && id == other.id && Objects.equals(idHorarios, other.idHorarios)
-				&& Objects.equals(idProfesorAsignado, other.idProfesorAsignado)
+		return carrera == other.carrera && Arrays.equals(fin, other.fin) && id == other.id
+				&& Objects.equals(idProfesorAsignado, other.idProfesorAsignado) && Arrays.equals(inicio, other.inicio)
 				&& Objects.equals(listaIdEstudiantes, other.listaIdEstudiantes)
 				&& Objects.equals(nombreMateria, other.nombreMateria) && semestre == other.semestre;
 	}

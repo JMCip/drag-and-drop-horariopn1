@@ -7,12 +7,11 @@ import java.util.Optional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import co.edu.unbosque.sistemahorario.dto.AdminDTO;
 import co.edu.unbosque.sistemahorario.dto.EstudianteDTO;
 import co.edu.unbosque.sistemahorario.entity.Estudiante;
-import co.edu.unbosque.sistemahorario.entity.Estudiante;
-import co.edu.unbosque.sistemahorario.entity.Estudiante;
+import co.edu.unbosque.sistemahorario.repository.AdminRepository;
 import co.edu.unbosque.sistemahorario.repository.EstudianteRepository;
+import co.edu.unbosque.sistemahorario.repository.ProfesorRepository;
 import co.edu.unbosque.sistemahorario.util.exceptions.InvalidEmailFormatException;
 import co.edu.unbosque.sistemahorario.util.exceptions.InvalidNameFormatException;
 import co.edu.unbosque.sistemahorario.util.exceptions.InvalidPasswordException;
@@ -22,6 +21,12 @@ public class EstudianteService implements CRUDOPeration<EstudianteDTO>{
 
 	@Autowired
 	private EstudianteRepository estRepo;
+
+	@Autowired
+	private ProfesorRepository profRepo;
+	
+	@Autowired
+	private AdminRepository admRepo;
 	
 	@Autowired
 	private ModelMapper mapper;
@@ -49,7 +54,7 @@ public class EstudianteService implements CRUDOPeration<EstudianteDTO>{
 			return 3;
 		}
 		
-		if(estRepo.existByCorreo(data.getCorreo())) 
+		if(profRepo.existByCorreo(data.getCorreo()) || estRepo.existByCorreo(data.getCorreo()) || admRepo.existByCorreo(data.getCorreo()))
 			return 4;
 		
 		estRepo.save(mapper.map(data, Estudiante.class));
@@ -61,7 +66,7 @@ public class EstudianteService implements CRUDOPeration<EstudianteDTO>{
 		List<Estudiante> entityList = (List<Estudiante>) estRepo.findAll();
 		List<EstudianteDTO> dtoList = new ArrayList<>();
 		
-		entityList.forEach((entity)-> {
+		entityList.forEach((entity) -> {
 			EstudianteDTO dto = mapper.map(entity, EstudianteDTO.class);
 			dtoList.add(dto);
 		});
@@ -104,11 +109,15 @@ public class EstudianteService implements CRUDOPeration<EstudianteDTO>{
 			return 3;
 		}
 		
-		if(estRepo.existByCorreo(data.getCorreo())) 
+		if(profRepo.existByCorreo(data.getCorreo()) || admRepo.existByCorreo(data.getCorreo()))
 			return 4;
 		
 		if(find.isPresent()) {
 			Estudiante temp = find.get();
+			
+			if(estRepo.existByCorreo(data.getCorreo()) && temp.getCorreo() != data.getCorreo())
+				return 5;
+			
 			temp.setNombre(data.getNombre());
 			temp.setCorreo(data.getCorreo());
 			temp.setContrasenia(data.getContrasenia());
@@ -116,7 +125,7 @@ public class EstudianteService implements CRUDOPeration<EstudianteDTO>{
 			return 0;
 		}
 		
-		return 5;
+		return 6;
 	}
 
 	@Override
