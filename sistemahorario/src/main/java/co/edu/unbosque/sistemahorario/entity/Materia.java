@@ -1,6 +1,7 @@
 package co.edu.unbosque.sistemahorario.entity;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -24,9 +25,8 @@ public class Materia {
 
 	private @Id @GeneratedValue(strategy = GenerationType.IDENTITY) long id;
 	
-	@JsonIgnore
-	@OneToMany(mappedBy = "horario_id", cascade = CascadeType.ALL)
-	private ArrayList<Horario> horario;
+	private int [] inicio;
+	private int [] fin;
 	
 	private String nombreMateria;
 	
@@ -47,21 +47,24 @@ public class Materia {
 		super();
 	}
 
-	public Materia(ArrayList<Horario> horario, String nombreMateria, Carrera carrera, short semestre,
+
+	public Materia(int[] inicio, int[] fin, String nombreMateria, Carrera carrera, short semestre) {
+		this.inicio = inicio;
+		this.fin = fin;
+		this.nombreMateria = nombreMateria;
+		this.carrera = carrera;
+		this.semestre = semestre;
+	}
+
+	public Materia(int[] inicio, int[] fin, String nombreMateria, Carrera carrera, short semestre,
 			Profesor profesorAsignado, ArrayList<Estudiante> listaEstudiantes) {
-		this.horario = horario;
+		this.inicio = inicio;
+		this.fin = fin;
 		this.nombreMateria = nombreMateria;
 		this.carrera = carrera;
 		this.semestre = semestre;
 		this.profesorAsignado = profesorAsignado;
 		this.listaEstudiantes = listaEstudiantes;
-	}
-
-	public Materia(ArrayList<Horario> horario, String nombreMateria, Carrera carrera, short semestre) {
-		this.horario = horario;
-		this.nombreMateria = nombreMateria;
-		this.carrera = carrera;
-		this.semestre = semestre;
 	}
 
 	public long getId() {
@@ -72,12 +75,20 @@ public class Materia {
 		this.id = id;
 	}
 
-	public ArrayList<Horario> getHorario() {
-		return horario;
+	public int[] getInicio() {
+		return inicio;
 	}
 
-	public void setHorario(ArrayList<Horario> horario) {
-		this.horario = horario;
+	public void setInicio(int[] inicio) {
+		this.inicio = inicio;
+	}
+
+	public int[] getFin() {
+		return fin;
+	}
+
+	public void setFin(int[] fin) {
+		this.fin = fin;
 	}
 
 	public String getNombreMateria() {
@@ -112,6 +123,7 @@ public class Materia {
 		this.profesorAsignado = profesorAsignado;
 	}
 
+
 	public ArrayList<Estudiante> getListaEstudiantes() {
 		return listaEstudiantes;
 	}
@@ -124,7 +136,8 @@ public class Materia {
 	public String toString() {
 		return "Materia " + 
 				"\nId: " + id + 
-				"\nHorario: " + horario + 
+				"\nInicio: " + inicio + 
+				"\nFin: " + fin +	
 				"\nNombre materia:" + nombreMateria + 
 				"\nCarrera: " + carrera + 
 				"\nSemestre: " + semestre + 
@@ -132,10 +145,18 @@ public class Materia {
 				"\nLista estudiantes: " + listaEstudiantes;
 	}
 
+
 	@Override
 	public int hashCode() {
-		return Objects.hash(carrera, horario, id, listaEstudiantes, nombreMateria, profesorAsignado, semestre);
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + Arrays.hashCode(fin);
+		result = prime * result + Arrays.hashCode(inicio);
+		result = prime * result
+				+ Objects.hash(carrera, id, listaEstudiantes, nombreMateria, profesorAsignado, semestre);
+		return result;
 	}
+
 
 	@Override
 	public boolean equals(Object obj) {
@@ -146,8 +167,8 @@ public class Materia {
 		if (getClass() != obj.getClass())
 			return false;
 		Materia other = (Materia) obj;
-		return carrera == other.carrera && Objects.equals(horario, other.horario) && id == other.id
-				&& Objects.equals(listaEstudiantes, other.listaEstudiantes)
+		return carrera == other.carrera && Arrays.equals(fin, other.fin) && id == other.id
+				&& Arrays.equals(inicio, other.inicio) && Objects.equals(listaEstudiantes, other.listaEstudiantes)
 				&& Objects.equals(nombreMateria, other.nombreMateria)
 				&& Objects.equals(profesorAsignado, other.profesorAsignado) && semestre == other.semestre;
 	}
