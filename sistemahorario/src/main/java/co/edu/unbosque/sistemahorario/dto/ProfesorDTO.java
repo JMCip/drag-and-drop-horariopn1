@@ -79,3 +79,4 @@ public class ProfesorDTO extends UsuarioDTO{
 		return Objects.equals(listaIdMaterias, other.listaIdMaterias) && Objects.equals(nombre, other.nombre);
 	}
 }
+
