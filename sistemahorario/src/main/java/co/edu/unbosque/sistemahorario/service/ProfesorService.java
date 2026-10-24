@@ -129,6 +129,23 @@ public class ProfesorService implements CRUDOPeration<ProfesorDTO>{
 		
 		return 6;
 	}
+	
+	public int validarInicioSesion(String correo, String pw) {
+	    try {
+	        LanzadorDeExcepcion.verificarEmail(correo);
+	    } catch (InvalidEmailFormatException e) {
+	        System.out.println("Error de correo: " + e.getMessage());
+	        return 1;
+	    }
+
+	    List<Profesor> entityList = (List<Profesor>) profRepo.findAll();
+	    for (Profesor user : entityList) {
+	        if (user.getCorreo().equalsIgnoreCase(correo) && user.getContrasenia().equals(pw)) {
+	            return 0;
+	        }
+	    }
+	    return 2;
+	}
 
 	@Override
 	public long count() {
