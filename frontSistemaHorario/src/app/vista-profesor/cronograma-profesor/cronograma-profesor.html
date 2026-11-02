@@ -7,6 +7,7 @@
     </div>
   </div>
   <p class="texto-ayuda">Vista de solo lectura de tus bloques asignados y disponibilidad reportada.</p>
+  <p class="texto-ayuda" *ngIf="clasesAsignadas.length === 0">Aún no tienes materias asignadas.</p>
   <div class="resumen-franjas-prof">
     <div class="item-clase-prof" *ngFor="let c of clasesAsignadas">
       <strong>{{ c.materia }}</strong>

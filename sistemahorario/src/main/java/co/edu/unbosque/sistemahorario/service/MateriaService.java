@@ -1,12 +1,13 @@
 package co.edu.unbosque.sistemahorario.service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import co.edu.unbosque.sistemahorario.dto.MateriaDTO;
 import co.edu.unbosque.sistemahorario.entity.Estudiante;
@@ -20,6 +21,7 @@ import co.edu.unbosque.sistemahorario.util.exceptions.InvalidTimeSlotException;
 import co.edu.unbosque.sistemahorario.util.exceptions.LanzadorDeExcepcion;
 
 @Service
+@Transactional
 public class MateriaService implements CRUDOPeration<MateriaDTO>{
 
 	@Autowired
@@ -31,9 +33,6 @@ public class MateriaService implements CRUDOPeration<MateriaDTO>{
 	@Autowired
 	private EstudianteRepository estRepo;
 	
-	@Autowired
-	private ModelMapper mapper;
-	
 	@Override
 	public int create(MateriaDTO data) {
 		try {
@@ -43,14 +42,20 @@ public class MateriaService implements CRUDOPeration<MateriaDTO>{
 			return 1;
 		}
 		
-		if(materiaRepo.existByNombreMateria(data.getNombreMateria()))
+		if(materiaRepo.existsByNombreMateriaAndGrupo(data.getNombreMateria(), data.getGrupo()))
 			return 2;
-		
-		
-		if(data.getSemestre() < 1 || data.getSemestre() > 10) 
+
+
+		if(data.getSemestre() < 1 || data.getSemestre() > 10)
 			return 3;
-			
-		materiaRepo.save(mapper.map(data, Materia.class));
+
+		if(!horarioValido(data.getInicio(), data.getFin()))
+			return 4;
+
+		if(data.getGrupo() < 1)
+			return 5;
+
+		materiaRepo.save(toEntity(data));
 		return 0;
 	}
 
@@ -60,8 +65,7 @@ public class MateriaService implements CRUDOPeration<MateriaDTO>{
 		List<MateriaDTO> dtoList = new ArrayList<>();
 		
 		entityList.forEach((entity) -> {
-			MateriaDTO dto = mapper.map(entity, MateriaDTO.class);
-			dtoList.add(dto);
+			dtoList.add(toDTO(entity));
 		});
 		return dtoList;
 	}
@@ -79,43 +83,49 @@ public class MateriaService implements CRUDOPeration<MateriaDTO>{
 	@Override
 	public int updateById(Long id, MateriaDTO data) {
 		Optional<Materia> find = materiaRepo.findById(id);
-		
+
+		if(find.isEmpty())
+			return 5;
+
+		Materia temp = find.get();
+
 		try {
 			LanzadorDeExcepcion.verificarTexto(data.getNombreMateria());
 		} catch(InvalidTextFormatException e) {
 			System.out.println(e.getMessage());
 			return 1;
 		}
-		
-		if(materiaRepo.existByNombreMateria(data.getNombreMateria()))
+
+		boolean cambioNombreOGrupo = !temp.getNombreMateria().equalsIgnoreCase(data.getNombreMateria()) || temp.getGrupo() != data.getGrupo();
+		if(cambioNombreOGrupo && materiaRepo.existsByNombreMateriaAndGrupo(data.getNombreMateria(), data.getGrupo()))
 			return 2;
-		
-		
-		if(data.getSemestre() < 1 || data.getSemestre() > 10) 
+
+
+		if(data.getSemestre() < 1 || data.getSemestre() > 10)
 			return 3;
-		
-		if(find.isPresent()) {
-			Materia temp = find.get();
-		
-			if(temp.getListaEstudiantes().size() != 0) 
-				return 4;
-			
-			
-			if(temp.getProfesorAsignado() != null) 
-				temp.setProfesorAsignado(null);
-			
-			
-			temp.setInicio(data.getInicio());
-			temp.setFin(data.getFin());
-			temp.setNombreMateria(data.getNombreMateria());
-			temp.setCarrera(data.getCarrera());
-			temp.setSemestre(data.getSemestre());
-			
-			materiaRepo.save(temp);
-			return 0;
-			
-		}
-		return 5;
+
+		if(!horarioValido(data.getInicio(), data.getFin()))
+			return 6;
+
+		if(data.getGrupo() < 1)
+			return 7;
+
+		if(temp.getListaEstudiantes() != null && !temp.getListaEstudiantes().isEmpty())
+			return 4;
+
+		boolean cambioHorario = !Arrays.equals(temp.getInicio(), data.getInicio()) || !Arrays.equals(temp.getFin(), data.getFin());
+		if(cambioHorario)
+			temp.setProfesorAsignado(null);
+
+		temp.setInicio(data.getInicio());
+		temp.setFin(data.getFin());
+		temp.setNombreMateria(data.getNombreMateria());
+		temp.setGrupo(data.getGrupo());
+		temp.setCarrera(data.getCarrera());
+		temp.setSemestre(data.getSemestre());
+
+		materiaRepo.save(temp);
+		return 0;
 	}
 
 	@Override
@@ -162,8 +172,11 @@ public class MateriaService implements CRUDOPeration<MateriaDTO>{
 			Estudiante temp1 = est.get();
 			Materia temp2 = materia.get();
 			
-			if(temp1.getListaMateriasInscritas().contains(temp2)) 
+			if(temp1.getListaMateriasInscritas().stream().anyMatch(m -> m.getId() == temp2.getId()))
 				return 1;
+
+			if(temp1.getListaMateriasInscritas().stream().anyMatch(m -> m.getNombreMateria().equalsIgnoreCase(temp2.getNombreMateria())))
+				return 4;
 			
 			try {
 				LanzadorDeExcepcion.verificarDisponibilidad(temp1, temp2);
@@ -178,5 +191,90 @@ public class MateriaService implements CRUDOPeration<MateriaDTO>{
 		}
 		
 		return 3;
+	}
+
+	public int desinscribirEstudiante(long idEst, long idMateria) {
+		Optional<Estudiante> est = estRepo.findById(idEst);
+		Optional<Materia> materia = materiaRepo.findById(idMateria);
+
+		if(est.isPresent() && materia.isPresent()) {
+			Materia temp = materia.get();
+
+			if(!temp.getListaEstudiantes().removeIf(e -> e.getId() == idEst))
+				return 1;
+
+			materiaRepo.save(temp);
+			return 0;
+		}
+
+		return 2;
+	}
+
+	public int moverEstudiante(long idEst, long idOrigen, long idDestino) {
+		Optional<Estudiante> est = estRepo.findById(idEst);
+		Optional<Materia> origen = materiaRepo.findById(idOrigen);
+		Optional<Materia> destino = materiaRepo.findById(idDestino);
+
+		if(est.isEmpty() || origen.isEmpty() || destino.isEmpty())
+			return 5;
+
+		Materia temp1 = origen.get();
+		Materia temp2 = destino.get();
+
+		if(temp1.getListaEstudiantes().stream().noneMatch(e -> e.getId() == idEst))
+			return 1;
+
+		if(!temp1.getNombreMateria().equalsIgnoreCase(temp2.getNombreMateria()))
+			return 2;
+
+		if(temp2.getListaEstudiantes().stream().anyMatch(e -> e.getId() == idEst))
+			return 3;
+
+		for(Materia otra : est.get().getListaMateriasInscritas()) {
+			if(otra.getId() != idOrigen && LanzadorDeExcepcion.hayCruce(otra, temp2))
+				return 4;
+		}
+
+		temp1.getListaEstudiantes().removeIf(e -> e.getId() == idEst);
+		temp2.getListaEstudiantes().add(est.get());
+		materiaRepo.save(temp1);
+		materiaRepo.save(temp2);
+		return 0;
+	}
+
+	private boolean horarioValido(int[] inicio, int[] fin) {
+		if(inicio == null || fin == null || inicio.length != 5 || fin.length != 5)
+			return false;
+
+		if(Arrays.stream(inicio).allMatch(h -> h == -1))
+			return false;
+
+		try {
+			LanzadorDeExcepcion.verificarFranjaHoraria(inicio, fin);
+		} catch(InvalidTimeSlotException e) {
+			System.out.println(e.getMessage());
+			return false;
+		}
+		return true;
+	}
+
+	private Materia toEntity(MateriaDTO data) {
+		Materia nueva = new Materia(data.getInicio(), data.getFin(), data.getNombreMateria(), data.getCarrera(), data.getSemestre());
+		nueva.setGrupo(data.getGrupo());
+		return nueva;
+	}
+
+	private MateriaDTO toDTO(Materia entity) {
+		Long idProfesor = entity.getProfesorAsignado() != null ? entity.getProfesorAsignado().getId() : null;
+
+		List<Long> idsEstudiantes = new ArrayList<>();
+		if(entity.getListaEstudiantes() != null)
+			entity.getListaEstudiantes().forEach((est) -> idsEstudiantes.add(est.getId()));
+
+		MateriaDTO dto = new MateriaDTO(entity.getInicio(), entity.getFin(), entity.getNombreMateria(), entity.getCarrera(),
+				entity.getSemestre(), idProfesor, idsEstudiantes);
+		dto.setId(entity.getId());
+		dto.setGrupo(entity.getGrupo());
+		return dto;
 	}
 }

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import co.edu.unbosque.sistemahorario.dto.EstudianteDTO;
 import co.edu.unbosque.sistemahorario.service.EstudianteService;
+import co.edu.unbosque.sistemahorario.util.enums.Carrera;
 
 @RestController
 @RequestMapping("/estudiante")
@@ -29,9 +30,10 @@ public class EstudianteController {
 	
 	
 	@PostMapping("/crear")
-	public ResponseEntity<String> crearEstudiante(@RequestParam String nombre, @RequestParam String constrasenia, @RequestParam String correo){
+	public ResponseEntity<String> crearEstudiante(@RequestParam String nombre, @RequestParam String contrasenia, @RequestParam String correo, @RequestParam Carrera carrera){
 	
-	EstudianteDTO nuevo = new EstudianteDTO(correo, constrasenia, nombre);
+	EstudianteDTO nuevo = new EstudianteDTO(correo, contrasenia, nombre);
+	nuevo.setCarrera(carrera);
 	int status = estServ.create(nuevo);
 	
 	switch(status) {
@@ -46,7 +48,7 @@ public class EstudianteController {
 	case 4:
 		return new ResponseEntity<String>("Correo ya existente", HttpStatus.BAD_REQUEST);
 	default:
-		return new ResponseEntity<String>("El formato de la contraseña no es valido", HttpStatus.INTERNAL_SERVER_ERROR);
+		return new ResponseEntity<String>("Error interno del servidor", HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
 }
@@ -55,11 +57,7 @@ public class EstudianteController {
 	public ResponseEntity<List<EstudianteDTO>> obtenertodo() {
 		List<EstudianteDTO> listaEstudiante = estServ.getAll();
 		
-		if(listaEstudiante.isEmpty()) {
-			return new ResponseEntity<List<EstudianteDTO>>(listaEstudiante, HttpStatus.NO_CONTENT);
-		}
-		
-		return new ResponseEntity<List<EstudianteDTO>>(listaEstudiante, HttpStatus.ACCEPTED);
+		return new ResponseEntity<List<EstudianteDTO>>(listaEstudiante, HttpStatus.OK);
 	}
 	
 	
@@ -78,14 +76,15 @@ public class EstudianteController {
 	
 	
 	@PutMapping("/actualizar")
-	public ResponseEntity<String> actualizarEstudiante(@RequestParam String nombre, @RequestParam String constrasenia, @RequestParam String correo, @RequestParam Long id){
+	public ResponseEntity<String> actualizarEstudiante(@RequestParam String nombre, @RequestParam(required = false) String contrasenia, @RequestParam String correo, @RequestParam Carrera carrera, @RequestParam Long id){
 		
-		EstudianteDTO nuevo = new EstudianteDTO(correo, constrasenia, nombre);
+		EstudianteDTO nuevo = new EstudianteDTO(correo, contrasenia, nombre);
+		nuevo.setCarrera(carrera);
 		int status = estServ.updateById(id,nuevo);
 		
 		switch(status) {
 		case 0:
-			return new ResponseEntity<String>("Estudiante actualizado con exito", HttpStatus.CREATED);
+			return new ResponseEntity<String>("Estudiante actualizado con exito", HttpStatus.OK);
 		case 1:
 			return new ResponseEntity<String>("El formato del correo no es valido", HttpStatus.NOT_ACCEPTABLE);
 		case 2:
@@ -97,7 +96,7 @@ public class EstudianteController {
 		case 5:
 			return new ResponseEntity<String>("Correo ya existente", HttpStatus.BAD_REQUEST);
 		case 6:
-			return new ResponseEntity<String>("Estudiante no encontrado", HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<String>("Estudiante no encontrado", HttpStatus.NOT_FOUND);
 		default:
 			return new ResponseEntity<String>("Error interno del servidor", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -106,8 +105,8 @@ public class EstudianteController {
 	
 	
 	@PostMapping("/iniciarsesion")
-	public ResponseEntity<String> validarSesion(@RequestParam String nombre, @RequestParam String constrasenia, @RequestParam String correo, @RequestParam Long id){
-		int status = estServ.validarInicioSesion(correo, constrasenia);
+	public ResponseEntity<String> validarSesion(@RequestParam String nombre, @RequestParam String contrasenia, @RequestParam String correo, @RequestParam Long id){
+		int status = estServ.validarInicioSesion(correo, contrasenia);
 		
 		switch(status) {
 		

@@ -2,6 +2,7 @@ package co.edu.unbosque.sistemahorario.controller;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -19,6 +20,7 @@ import co.edu.unbosque.sistemahorario.service.ProfesorService;
 @RequestMapping("/profesor")
 public class ProfesorController {
 	
+	@Autowired
 	private ProfesorService profServ;
 	
 	public ProfesorController()
@@ -45,7 +47,7 @@ public class ProfesorController {
 		case 4:
 			return new ResponseEntity<String>("Correo ya existente", HttpStatus.BAD_REQUEST);
 		default:
-			return new ResponseEntity<String>("El formato de la contraseña no es valido", HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<String>("Error interno del servidor", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
@@ -54,11 +56,7 @@ public class ProfesorController {
 	public ResponseEntity<List<ProfesorDTO>> obtenertodo(){
 		List<ProfesorDTO> listaProfesor = profServ.getAll();
 		
-		if(listaProfesor.isEmpty()) {
-			return new ResponseEntity<List<ProfesorDTO>>(listaProfesor, HttpStatus.NO_CONTENT);
-		}
-		
-		return new ResponseEntity<List<ProfesorDTO>>(listaProfesor, HttpStatus.ACCEPTED);
+		return new ResponseEntity<List<ProfesorDTO>>(listaProfesor, HttpStatus.OK);
 	}
 	
 	
@@ -77,14 +75,14 @@ public class ProfesorController {
 	
 	
 	@PutMapping("/actualizar")
-	public ResponseEntity<String> actualizarProfesor(@RequestParam String nombre, @RequestParam String contrasenia, @RequestParam String correo, @RequestParam Long id) {
+	public ResponseEntity<String> actualizarProfesor(@RequestParam String nombre, @RequestParam(required = false) String contrasenia, @RequestParam String correo, @RequestParam Long id) {
 		
 		ProfesorDTO nuevo = new ProfesorDTO(correo, contrasenia, nombre);
 		int status = profServ.updateById(id, nuevo);
 		
 		switch(status) {
 		case 0:
-			return new ResponseEntity<String>("Profesor actualizado con exito", HttpStatus.CREATED);
+			return new ResponseEntity<String>("Profesor actualizado con exito", HttpStatus.OK);
 		case 1:
 			return new ResponseEntity<String>("El formato del correo no es valido", HttpStatus.NOT_ACCEPTABLE);
 		case 2:
@@ -96,15 +94,15 @@ public class ProfesorController {
 		case 5:
 			return new ResponseEntity<String>("Correo ya existente", HttpStatus.BAD_REQUEST);
 		case 6:
-			return new ResponseEntity<String>("Profesor no encontrado", HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<String>("Profesor no encontrado", HttpStatus.NOT_FOUND);
 		default:
-			return new ResponseEntity<String>("El formato de la contraseña no es valido", HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<String>("Error interno del servidor", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
 	@PostMapping("/iniciarsesion")
-	public ResponseEntity<String> validarSesion(@RequestParam String nombre, @RequestParam String constrasenia, @RequestParam String correo, @RequestParam Long id){
-		int status = profServ.validarInicioSesion(correo, constrasenia);
+	public ResponseEntity<String> validarSesion(@RequestParam String nombre, @RequestParam String contrasenia, @RequestParam String correo, @RequestParam Long id){
+		int status = profServ.validarInicioSesion(correo, contrasenia);
 		
 		switch(status) {
 		

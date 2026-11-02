@@ -24,7 +24,7 @@
     <div class="campo" *ngIf="tipoNuevoUsuario === 'ESTUDIANTE'">
       <label>Carrera (RF21)</label>
       <select [(ngModel)]="carreraNueva" name="carrera">
-        <option *ngFor="let c of carrerasElBosque" [value]="c">{{ c }}</option>
+        <option *ngFor="let c of carrerasElBosque" [value]="c.valor">{{ c.etiqueta }}</option>
       </select>
     </div>
 

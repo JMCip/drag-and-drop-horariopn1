@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { VistaAdmin } from './vista-admin';
 
 describe('VistaAdmin', () => {
@@ -8,6 +9,7 @@ describe('VistaAdmin', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [VistaAdmin],
+      providers: [provideHttpClientTesting()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(VistaAdmin);

@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { CronogramaProfesor } from './cronograma-profesor';
 
 describe('CronogramaProfesor', () => {
@@ -8,6 +9,7 @@ describe('CronogramaProfesor', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [CronogramaProfesor],
+      providers: [provideHttpClientTesting()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CronogramaProfesor);

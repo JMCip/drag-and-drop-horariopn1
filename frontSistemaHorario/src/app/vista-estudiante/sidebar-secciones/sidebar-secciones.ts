@@ -36,10 +36,10 @@ export class SidebarSecciones {
   get materiasAgrupadas(): { nombre: string; codigo: string; secciones: SeccionModel[] }[] {
     const mapa = new Map<string, { nombre: string; codigo: string; secciones: SeccionModel[] }>();
     for (const s of this.seccionesDisponiblesFiltradas) {
-      if (!mapa.has(s.codigoMateria)) {
-        mapa.set(s.codigoMateria, { nombre: s.nombreMateria, codigo: s.codigoMateria, secciones: [] });
+      if (!mapa.has(s.nombreMateria)) {
+        mapa.set(s.nombreMateria, { nombre: s.nombreMateria, codigo: s.codigoMateria, secciones: [] });
       }
-      mapa.get(s.codigoMateria)!.secciones.push(s);
+      mapa.get(s.nombreMateria)!.secciones.push(s);
     }
     return Array.from(mapa.values());
   }

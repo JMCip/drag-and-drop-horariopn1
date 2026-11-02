@@ -1,0 +1,86 @@
+<div class="contenedor-materias">
+  <section class="tarjeta-formulario-admin">
+    <h2>Crear materia</h2>
+
+    <div class="alerta-admin error" *ngIf="mensajeError">⚠ {{ mensajeError }}</div>
+    <div class="alerta-admin exito" *ngIf="mensajeExito">✓ {{ mensajeExito }}</div>
+
+    <form (ngSubmit)="crearMateria()" class="form-registro">
+      <div class="campo">
+        <label for="nombreMateriaInput">Nombre</label>
+        <input id="nombreMateriaInput" type="text" [(ngModel)]="nombreMateria" name="nombreMateria" placeholder="Ej. Bases de Datos" required />
+      </div>
+
+      <div class="campo">
+        <label for="carreraInput">Carrera</label>
+        <select id="carreraInput" [(ngModel)]="carrera" name="carrera">
+          <option *ngFor="let c of carreras" [value]="c.valor">{{ c.etiqueta }}</option>
+        </select>
+      </div>
+
+      <div class="fila-doble">
+        <div class="campo">
+          <label for="semestreInput">Semestre</label>
+          <select id="semestreInput" [(ngModel)]="semestre" name="semestre">
+            <option *ngFor="let s of semestres" [ngValue]="s">{{ s }}</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label for="grupoInput">Grupo</label>
+          <input id="grupoInput" type="number" min="1" [(ngModel)]="grupo" name="grupo" required />
+        </div>
+      </div>
+
+      <div class="campo">
+        <label>Horario (de 7 a 13 y de 14 a 22, máximo 4 horas por día)</label>
+        <div class="fila-dia" *ngFor="let h of horario; let i = index">
+          <span>{{ h.dia }}</span>
+          <select [(ngModel)]="h.inicio" [name]="'inicio' + i" [attr.aria-label]="'Inicio ' + h.dia">
+            <option [ngValue]="null">Sin clase</option>
+            <option *ngFor="let hora of horasInicio" [ngValue]="hora">{{ hora }}:00</option>
+          </select>
+          <select [(ngModel)]="h.fin" [name]="'fin' + i" [attr.aria-label]="'Fin ' + h.dia">
+            <option [ngValue]="null">Sin clase</option>
+            <option *ngFor="let hora of horasFin" [ngValue]="hora">{{ hora }}:00</option>
+          </select>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primario">Crear materia</button>
+    </form>
+  </section>
+
+  <section class="tarjeta-listados">
+    <h2>Materias y profesores</h2>
+    <table class="tabla-admin">
+      <thead>
+      <tr>
+        <th>Materia</th>
+        <th>Horario</th>
+        <th>Docente</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let m of materias">
+        <td>{{ m.nombreMateria }} (Grupo {{ m.grupo }})</td>
+        <td class="tabular-nums">{{ horarioDe(m) }}</td>
+        <td>
+          <span *ngIf="m.idProfesorAsignado; else sinProfesor">{{ nombreDocente(m) }}</span>
+          <ng-template #sinProfesor>
+            <div class="asignar-profesor" *ngIf="m.id !== undefined">
+              <select [(ngModel)]="profesorElegido[m.id]" [name]="'profesor' + m.id" aria-label="Profesor">
+                <option [ngValue]="undefined" disabled>Elegir profesor</option>
+                <option *ngFor="let p of profesores" [ngValue]="p.id">{{ p.nombre }}</option>
+              </select>
+              <button type="button" class="btn btn-secundario" (click)="asignarProfesor(m)">Asignar</button>
+            </div>
+          </ng-template>
+        </td>
+      </tr>
+      <tr *ngIf="materias.length === 0">
+        <td colspan="3">No hay materias.</td>
+      </tr>
+      </tbody>
+    </table>
+  </section>
+</div>

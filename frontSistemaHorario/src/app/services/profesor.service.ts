@@ -1,48 +1,44 @@
-import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ProfesorDTO } from '../models/usuario.model';
 
 @Injectable({ providedIn: 'root' })
 export class ProfesorService {
 
-  // private http = inject(HttpClient);
-  // private readonly urlBase = 'http://localhost:8080/profesor';
+  private http = inject(HttpClient);
+  private readonly urlBase = 'http://localhost:8080/profesor';
 
-  private profesoresMemoria: ProfesorDTO[] = [
-    { id: 10, nombre: 'Prof. Diego', correo: 'diego@unbosque.edu.co', listaIdMaterias: [101, 301] },
-    { id: 11, nombre: 'Prof. Andres Rey', correo: 'rey@unbosque.edu.co', listaIdMaterias: [102] },
-    { id: 12, nombre: 'Prof. Cristian', correo: 'cris@unbosque.edu.co', listaIdMaterias: [201, 202] }
-  ];
-
-  create(data: ProfesorDTO): Observable<number> {
-    const nuevoId = this.profesoresMemoria.length + 10;
-    this.profesoresMemoria.push({ ...data, id: nuevoId });
-    return of(1);
+  create(data: ProfesorDTO): Observable<string> {
+    return this.http.post(`${this.urlBase}/crear`, this.aParams(data), { responseType: 'text' });
   }
 
   getAll(): Observable<ProfesorDTO[]> {
-    return of([...this.profesoresMemoria]);
+    return this.http.get<ProfesorDTO[]>(`${this.urlBase}/mostrartodo`).pipe(map(l => l ?? []));
   }
 
-  deleteById(id: number): Observable<number> {
-    this.profesoresMemoria = this.profesoresMemoria.filter(p => p.id !== id);
-    return of(1);
+  deleteById(id: number): Observable<string> {
+    const params = new HttpParams().set('id', id);
+    return this.http.delete(`${this.urlBase}/eliminar`, { params, responseType: 'text' });
   }
 
-  updateById(id: number, data: ProfesorDTO): Observable<number> {
-    const index = this.profesoresMemoria.findIndex(p => p.id === id);
-    if (index !== -1) {
-      this.profesoresMemoria[index] = { ...data, id };
-      return of(1);
-    }
-    return of(0);
+  updateById(id: number, data: ProfesorDTO): Observable<string> {
+    return this.http.put(`${this.urlBase}/actualizar`, this.aParams(data).set('id', id), { responseType: 'text' });
   }
 
   count(): Observable<number> {
-    return of(this.profesoresMemoria.length);
+    return this.getAll().pipe(map(l => l.length));
   }
 
   exist(id: number): Observable<boolean> {
-    return of(this.profesoresMemoria.some(p => p.id === id));
+    return this.getAll().pipe(map(l => l.some(p => p.id === id)));
+  }
+
+  private aParams(data: ProfesorDTO): HttpParams {
+    const params = new HttpParams()
+      .set('nombre', data.nombre)
+      .set('correo', data.correo);
+    return data.contrasenia ? params.set('contrasenia', data.contrasenia) : params;
   }
 }

@@ -32,9 +32,9 @@ public class AdminController {
 	}
 	
 	@PostMapping("/crear")
-	public ResponseEntity<String> crearAdmin(@RequestParam String correo, @RequestParam String contrasena) {
+	public ResponseEntity<String> crearAdmin(@RequestParam String correo, @RequestParam String contrasenia) {
 		
-		AdminDTO nuevo = new AdminDTO(correo, contrasena);
+		AdminDTO nuevo = new AdminDTO(correo, contrasenia);
 		int status = admServ.create(nuevo);
 		
 		switch(status) {
@@ -47,7 +47,7 @@ public class AdminController {
 		case 3:
 			return new ResponseEntity<String>("Correo ya existente en el sistema", HttpStatus.BAD_REQUEST);
 		default:
-			return new ResponseEntity<String>("El formato de la contraseña no es valido", HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<String>("Error interno del servidor", HttpStatus.INTERNAL_SERVER_ERROR);
 		
 		}
 					
@@ -57,11 +57,7 @@ public class AdminController {
 	public ResponseEntity<List<AdminDTO>> obtenertodo() {
 		List<AdminDTO> listaAdmin = admServ.getAll();
 		
-		if(listaAdmin.isEmpty()) {
-			return new ResponseEntity<List<AdminDTO>>(listaAdmin, HttpStatus.NO_CONTENT);
-		}
-		
-		return new ResponseEntity<List<AdminDTO>>(listaAdmin, HttpStatus.ACCEPTED);
+		return new ResponseEntity<List<AdminDTO>>(listaAdmin, HttpStatus.OK);
 		
 		}
 	
@@ -79,14 +75,14 @@ public class AdminController {
 	}
 	
 	@PutMapping("/actualizar")
-	public ResponseEntity<String> actualizarAdmin(@RequestParam String correo, @RequestParam String contrasena, @RequestParam Long id) {
+	public ResponseEntity<String> actualizarAdmin(@RequestParam String correo, @RequestParam(required = false) String contrasenia, @RequestParam Long id) {
 		
-		AdminDTO nuevo = new AdminDTO(correo, contrasena);
+		AdminDTO nuevo = new AdminDTO(correo, contrasenia);
 		int status = admServ.updateById(id,nuevo);
 		
 		switch(status) {
 		case 0:
-			return new ResponseEntity<String>("Administrador creado con exito", HttpStatus.CREATED);
+			return new ResponseEntity<String>("Administrador actualizado con exito", HttpStatus.OK);
 		case 1:
 			return new ResponseEntity<String>("El formato del correo no es valido", HttpStatus.NOT_ACCEPTABLE);
 		case 2:
@@ -105,8 +101,8 @@ public class AdminController {
 	}
 	
 	@PostMapping("/iniciarsesion")
-	public ResponseEntity<String> validarSesion(@RequestParam String correo, @RequestParam String contrasena){
-		int status = admServ.validarInicioSesion(correo, contrasena);
+	public ResponseEntity<String> validarSesion(@RequestParam String correo, @RequestParam String contrasenia){
+		int status = admServ.validarInicioSesion(correo, contrasenia);
 		
 		switch(status) {
 		

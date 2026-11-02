@@ -1,3 +1,4 @@
+import { Carrera } from './carrera.enum';
 import { Role } from './role.enum';
 
 export interface UsuarioDTO {
@@ -12,6 +13,7 @@ export interface AdminDTO extends UsuarioDTO {}
 
 export interface EstudianteDTO extends UsuarioDTO {
   nombre: string;
+  carrera?: Carrera | null;
   listaIdMateriasInscritas: number[];
 }
 

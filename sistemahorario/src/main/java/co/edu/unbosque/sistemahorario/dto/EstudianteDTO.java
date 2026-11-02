@@ -1,18 +1,22 @@
 package co.edu.unbosque.sistemahorario.dto;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+
+import co.edu.unbosque.sistemahorario.util.enums.Carrera;
 
 public class EstudianteDTO extends UsuarioDTO{
 	
-	private ArrayList<Long> listaIdMateriasInscritas;
+	private List<Long> listaIdMateriasInscritas = new ArrayList<>();
 	private String nombre;
+	private Carrera carrera;
 	
 	public EstudianteDTO() {
 		super();
 	}
 	
-	public EstudianteDTO(ArrayList<Long> listaIdMateriasInscritas, String nombre) {
+	public EstudianteDTO(List<Long> listaIdMateriasInscritas, String nombre) {
 		super();
 		this.listaIdMateriasInscritas = listaIdMateriasInscritas;
 		this.nombre = nombre;
@@ -22,7 +26,7 @@ public class EstudianteDTO extends UsuarioDTO{
 		super(correo, contrasenia);
 	}
 	
-	public EstudianteDTO(String correo, String contrasenia, ArrayList<Long> listaIdMateriasInscritas, String nombre) {
+	public EstudianteDTO(String correo, String contrasenia, List<Long> listaIdMateriasInscritas, String nombre) {
 		super(correo, contrasenia);
 		this.listaIdMateriasInscritas = listaIdMateriasInscritas;
 		this.nombre = nombre;		
@@ -33,12 +37,20 @@ public class EstudianteDTO extends UsuarioDTO{
 		this.nombre = nombre;		
 	}
 
-	public ArrayList<Long> getListaIdMateriasInscritas() {
+	public List<Long> getListaIdMateriasInscritas() {
 		return listaIdMateriasInscritas;
 	}
 
-	public void setListaIdMateriasInscritas(ArrayList<Long> listaIdMateriasInscritas) {
+	public void setListaIdMateriasInscritas(List<Long> listaIdMateriasInscritas) {
 		this.listaIdMateriasInscritas = listaIdMateriasInscritas;
+	}
+
+	public Carrera getCarrera() {
+		return carrera;
+	}
+
+	public void setCarrera(Carrera carrera) {
+		this.carrera = carrera;
 	}
 
 	public String getNombre() {
@@ -54,14 +66,15 @@ public class EstudianteDTO extends UsuarioDTO{
 		return "EstudianteDTO" + 
 				super.toString() + 
 				"\nLista id materias inscritas: " + listaIdMateriasInscritas + 
-				"\nNombre: " + nombre;
+				"\nNombre: " + nombre + 
+				"\nCarrera: " + carrera;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + Objects.hash(listaIdMateriasInscritas, nombre);
+		result = prime * result + Objects.hash(carrera, listaIdMateriasInscritas, nombre);
 		return result;
 	}
 
@@ -77,6 +90,6 @@ public class EstudianteDTO extends UsuarioDTO{
 			return false;
 		EstudianteDTO other = (EstudianteDTO) obj;
 		return Objects.equals(listaIdMateriasInscritas, other.listaIdMateriasInscritas)
-				&& Objects.equals(nombre, other.nombre);
+				&& Objects.equals(nombre, other.nombre) && carrera == other.carrera;
 	}
 }

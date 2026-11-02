@@ -6,6 +6,7 @@
 
 <main class="contenedor-admin">
   <app-dashboard-admin *ngIf="pestanaActiva === 'panel'"></app-dashboard-admin>
+  <app-materias-admin *ngIf="pestanaActiva === 'materias'"></app-materias-admin>
   <app-registro-usuarios *ngIf="pestanaActiva === 'registrar'"></app-registro-usuarios>
   <app-reubicaciones-admin *ngIf="pestanaActiva === 'reubicaciones'"></app-reubicaciones-admin>
 </main>

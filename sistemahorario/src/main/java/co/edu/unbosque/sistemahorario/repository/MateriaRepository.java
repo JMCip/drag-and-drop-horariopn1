@@ -6,5 +6,5 @@ import co.edu.unbosque.sistemahorario.entity.Materia;
 
 public interface MateriaRepository extends CrudRepository<Materia, Long>{
 	
-	boolean existByNombreMateria(String nombre);
+	boolean existsByNombreMateriaAndGrupo(String nombre, int grupo);
 }

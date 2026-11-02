@@ -2,12 +2,13 @@ package co.edu.unbosque.sistemahorario.entity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import co.edu.unbosque.sistemahorario.util.enums.Carrera;
-import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -15,8 +16,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -35,13 +37,19 @@ public class Materia {
 	
 	private short semestre;
 	
+	@Column(nullable = false)
+	private int grupo = 1;
+	
 	@ManyToOne
-	@JoinColumn(name = "profesor")
+	@JoinColumn(name = "profesor_id")
 	private Profesor profesorAsignado;
 	
 	@JsonIgnore
-	@OneToMany(mappedBy = "estudiante_id", cascade = CascadeType.ALL)
-	private ArrayList<Estudiante> listaEstudiantes;
+	@ManyToMany
+	@JoinTable(name = "materia_estudiante",
+			joinColumns = @JoinColumn(name = "materia_id"),
+			inverseJoinColumns = @JoinColumn(name = "estudiante_id"))
+	private List<Estudiante> listaEstudiantes = new ArrayList<>();
 	
 	public Materia() {
 		super();
@@ -57,7 +65,7 @@ public class Materia {
 	}
 
 	public Materia(int[] inicio, int[] fin, String nombreMateria, Carrera carrera, short semestre,
-			Profesor profesorAsignado, ArrayList<Estudiante> listaEstudiantes) {
+			Profesor profesorAsignado, List<Estudiante> listaEstudiantes) {
 		this.inicio = inicio;
 		this.fin = fin;
 		this.nombreMateria = nombreMateria;
@@ -115,6 +123,14 @@ public class Materia {
 		this.semestre = semestre;
 	}
 
+	public int getGrupo() {
+		return grupo;
+	}
+
+	public void setGrupo(int grupo) {
+		this.grupo = grupo;
+	}
+
 	public Profesor getProfesorAsignado() {
 		return profesorAsignado;
 	}
@@ -124,11 +140,11 @@ public class Materia {
 	}
 
 
-	public ArrayList<Estudiante> getListaEstudiantes() {
+	public List<Estudiante> getListaEstudiantes() {
 		return listaEstudiantes;
 	}
 
-	public void setListaEstudiantes(ArrayList<Estudiante> listaEstudiantes) {
+	public void setListaEstudiantes(List<Estudiante> listaEstudiantes) {
 		this.listaEstudiantes = listaEstudiantes;
 	}
 
@@ -136,13 +152,12 @@ public class Materia {
 	public String toString() {
 		return "Materia " + 
 				"\nId: " + id + 
-				"\nInicio: " + inicio + 
-				"\nFin: " + fin +	
+				"\nInicio: " + Arrays.toString(inicio) + 
+				"\nFin: " + Arrays.toString(fin) +	
 				"\nNombre materia:" + nombreMateria + 
 				"\nCarrera: " + carrera + 
 				"\nSemestre: " + semestre + 
-				"\nProfesor asignado: " + profesorAsignado + 
-				"\nLista estudiantes: " + listaEstudiantes;
+				"\nGrupo: " + grupo;
 	}
 
 
@@ -153,7 +168,7 @@ public class Materia {
 		result = prime * result + Arrays.hashCode(fin);
 		result = prime * result + Arrays.hashCode(inicio);
 		result = prime * result
-				+ Objects.hash(carrera, id, listaEstudiantes, nombreMateria, profesorAsignado, semestre);
+				+ Objects.hash(carrera, grupo, id, nombreMateria, semestre);
 		return result;
 	}
 
@@ -168,8 +183,7 @@ public class Materia {
 			return false;
 		Materia other = (Materia) obj;
 		return carrera == other.carrera && Arrays.equals(fin, other.fin) && id == other.id
-				&& Arrays.equals(inicio, other.inicio) && Objects.equals(listaEstudiantes, other.listaEstudiantes)
-				&& Objects.equals(nombreMateria, other.nombreMateria)
-				&& Objects.equals(profesorAsignado, other.profesorAsignado) && semestre == other.semestre;
+				&& Arrays.equals(inicio, other.inicio) && Objects.equals(nombreMateria, other.nombreMateria)
+				&& semestre == other.semestre && grupo == other.grupo;
 	}
 }

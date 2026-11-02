@@ -1,20 +1,20 @@
 package co.edu.unbosque.sistemahorario.controller;
 
-import co.edu.unbosque.sistemahorario.dto.AuthRequest;
 import co.edu.unbosque.sistemahorario.dto.AuthResponse;
+import co.edu.unbosque.sistemahorario.entity.Usuario;
+import co.edu.unbosque.sistemahorario.service.UserDetailsServiceImpl;
 import co.edu.unbosque.sistemahorario.util.JwtUtil; // Ajusta según el nombre de tu paquete de utilidades
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*") // Permite la conexión con Angular
 public class AuthController {
 
     @Autowired
@@ -24,21 +24,23 @@ public class AuthController {
     private JwtUtil jwtUtil;
 
     @Autowired
-    private UserDetailsService userDetailsService;
+    private UserDetailsServiceImpl userDetailsService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> createAuthenticationToken(@RequestBody AuthRequest authRequest) throws Exception {
+    public ResponseEntity<?> createAuthenticationToken(@RequestParam String correo, @RequestParam String contrasenia) {
         try {
             authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
+                new UsernamePasswordAuthenticationToken(correo, contrasenia)
             );
-        } catch (BadCredentialsException e) {
-            throw new Exception("Usuario o contraseña incorrectos", e);
+        } catch (AuthenticationException e) {
+            return new ResponseEntity<String>("Correo o contraseña incorrectos", HttpStatus.UNAUTHORIZED);
         }
 
-        final UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getUsername());
+        final UserDetails userDetails = userDetailsService.loadUserByUsername(correo);
         final String jwt = jwtUtil.generateToken(userDetails);
+        final Usuario usuario = userDetailsService.buscarPorCorreo(correo);
 
-        return ResponseEntity.ok(new AuthResponse(jwt));
+        return ResponseEntity.ok(new AuthResponse(usuario.getId(), jwt, userDetailsService.obtenerRol(usuario),
+                userDetailsService.obtenerNombre(usuario), usuario.getCorreo()));
     }
 }

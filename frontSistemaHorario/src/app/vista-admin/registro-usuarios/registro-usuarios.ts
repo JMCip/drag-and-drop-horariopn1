@@ -1,6 +1,9 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Carrera, ETIQUETAS_CARRERA } from '../../models/carrera.enum';
+import { EstudianteService } from '../../services/estudiante.service';
+import { ProfesorService } from '../../services/profesor.service';
 
 @Component({
   selector: 'app-registro-usuarios',
@@ -10,19 +13,19 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './registro-usuarios.css'
 })
 export class RegistroUsuarios {
+  private estudianteService = inject(EstudianteService);
+  private profesorService = inject(ProfesorService);
+  private cdr = inject(ChangeDetectorRef);
+
   tipoNuevoUsuario: 'ESTUDIANTE' | 'PROFESOR' = 'ESTUDIANTE';
   nombreNuevo = '';
   correoNuevo = '';
   passNueva = '';
-  carreraNueva = 'Ingeniería de Sistemas';
+  carreraNueva = Carrera.ING_SISTEMAS;
   mensajeRegistroExito = '';
   mensajeRegistroError = '';
 
-  carrerasElBosque: string[] = [
-    'Ingeniería de Sistemas', 'Ingeniería Industrial', 'Bioingeniería',
-    'Ingeniería Robótica', 'Medicina', 'Psicología',
-    'Matemática y Ciencia de Datos', 'Estadística', 'Física'
-  ];
+  carrerasElBosque = Object.values(Carrera).map(valor => ({ valor, etiqueta: ETIQUETAS_CARRERA[valor] }));
 
   get correoEsValido(): boolean {
     return /^[^\s@]+@(unbosque\.edu\.co|gmail\.com)$/i.test(this.correoNuevo.trim());
@@ -38,9 +41,26 @@ export class RegistroUsuarios {
       this.mensajeRegistroError = 'Verifica los requisitos de correo institucional y contraseña segura.';
       return;
     }
-    this.mensajeRegistroExito = `Usuario ${this.nombreNuevo} (${this.tipoNuevoUsuario}) registrado exitosamente.`;
-    this.nombreNuevo = '';
-    this.correoNuevo = '';
-    this.passNueva = '';
+
+    const datos = { nombre: this.nombreNuevo.trim(), correo: this.correoNuevo.trim(), contrasenia: this.passNueva };
+    const peticion = this.tipoNuevoUsuario === 'ESTUDIANTE'
+      ? this.estudianteService.create({ ...datos, carrera: this.carreraNueva, listaIdMateriasInscritas: [] })
+      : this.profesorService.create({ ...datos, listaIdMaterias: [] });
+
+    peticion.subscribe({
+      next: (mensaje) => {
+        this.mensajeRegistroExito = mensaje;
+        this.nombreNuevo = '';
+        this.correoNuevo = '';
+        this.passNueva = '';
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.mensajeRegistroError = typeof err.error === 'string' && err.error
+          ? err.error
+          : 'No se pudo registrar el usuario.';
+        this.cdr.markForCheck();
+      }
+    });
   }
 }

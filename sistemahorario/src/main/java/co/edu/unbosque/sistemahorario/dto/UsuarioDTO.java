@@ -2,10 +2,13 @@ package co.edu.unbosque.sistemahorario.dto;
 
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class UsuarioDTO {
 	
 	private long id;
 	private String correo;
+	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	private String contrasenia;
 
 	public UsuarioDTO() {

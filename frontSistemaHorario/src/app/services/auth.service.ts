@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
-import { Observable, of, throwError } from 'rxjs';
-import { delay, tap } from 'rxjs/operators';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { Role } from '../models/role.enum';
 
 export interface AuthResponse {
@@ -13,35 +14,24 @@ export interface AuthResponse {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  //inyectar el HttpClient!!!
+
+  private http = inject(HttpClient);
+  private readonly urlBase = 'http://localhost:8080/api/auth';
 
   iniciarSesion(correo: string, contrasenia: string): Observable<AuthResponse> {
-    const c = correo.toLowerCase().trim();
-    if (contrasenia === '12345678' || contrasenia === 'admin123') {
-      let respuesta: AuthResponse;
-      if (c.includes('admin')) {
-        respuesta = { id: 1, token: 'mock-jwt-admin', rol: Role.ADMIN, nombre: 'Secretaría Académica', correo };
-      } else if (c.includes('prof')) {
-        respuesta = { id: 10, token: 'mock-jwt-prof', rol: Role.PROFESOR, nombre: 'Prof. A. Pérez', correo };
-      } else {
-        respuesta = { id: 1, token: 'mock-jwt-est', rol: Role.ESTUDIANTE, nombre: 'Jose Manuel Cipagauta', correo };
-      }
+    const params = new HttpParams().set('correo', correo.trim()).set('contrasenia', contrasenia);
 
-      return of(respuesta).pipe(
-        delay(150),
-        tap(res => {
-          localStorage.setItem('token_horario', res.token);
-          localStorage.setItem('rol_horario', res.rol);
-          localStorage.setItem('nombre_horario', res.nombre);
-          localStorage.setItem('correo_horario', res.correo);
-          if (res.id !== undefined) {
-            localStorage.setItem('id_usuario_horario', res.id.toString());
-          }
-        })
-      );
-    }
-
-    return throwError(() => ({ status: 401, error: 'Correo o contraseña incorrectos' }));
+    return this.http.post<AuthResponse>(`${this.urlBase}/login`, params).pipe(
+      tap(res => {
+        localStorage.setItem('token_horario', res.token);
+        localStorage.setItem('rol_horario', res.rol);
+        localStorage.setItem('nombre_horario', res.nombre);
+        localStorage.setItem('correo_horario', res.correo);
+        if (res.id !== undefined) {
+          localStorage.setItem('id_usuario_horario', res.id.toString());
+        }
+      })
+    );
   }
 
   obtenerToken(): string | null {

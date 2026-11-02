@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -15,6 +15,7 @@ import { Role } from '../models/role.enum';
 export class Login {
   private authService = inject(AuthService);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
 
   correo = '';
   contrasena = '';
@@ -41,19 +42,13 @@ export class Login {
           this.router.navigate(['/estudiante']);
         }
       },
-      error: () => {
+      error: (err) => {
         this.cargando = false;
-        this.mensajeError = 'Correo o contraseña incorrectos';
+        this.mensajeError = err.status === 0
+          ? 'No se pudo conectar con el servidor'
+          : 'Correo o contraseña incorrectos';
+        this.cdr.markForCheck();
       }
     });
-  }
-
-  // Helper para probar rápido los 3 roles en la demo
-  cargarCredencialesDemo(rol: 'estudiante' | 'profesor' | 'admin'): void {
-    this.contrasena = '12345678';
-    if (rol === 'estudiante') this.correo = 'jcipagauta@unbosque.edu.co';
-    if (rol === 'profesor') this.correo = 'prof.perez@unbosque.edu.co';
-    if (rol === 'admin') this.correo = 'admin.secretaria@unbosque.edu.co';
-    this.iniciarSesion();
   }
 }

@@ -1,13 +1,16 @@
 package co.edu.unbosque.sistemahorario.entity;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import jakarta.persistence.CascadeType;
+import co.edu.unbosque.sistemahorario.util.enums.Carrera;
 import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -15,16 +18,19 @@ import jakarta.persistence.Table;
 public class Estudiante extends Usuario{
 	
 	@JsonIgnore
-	@OneToMany(mappedBy = "materia", cascade = CascadeType.ALL)
-	private ArrayList<Materia> listaMateriasInscritas;
+	@ManyToMany(mappedBy = "listaEstudiantes")
+	private List<Materia> listaMateriasInscritas = new ArrayList<>();
 	
 	private String nombre;
+	
+	@Enumerated(EnumType.STRING)
+	private Carrera carrera;
 	
 	public Estudiante() {
 		super();
 	}
 	
-	public Estudiante(ArrayList<Materia> listaMateriasInscritas, String nombre) {
+	public Estudiante(List<Materia> listaMateriasInscritas, String nombre) {
 		super();
 		this.listaMateriasInscritas = listaMateriasInscritas;
 		this.nombre = nombre;
@@ -34,7 +40,7 @@ public class Estudiante extends Usuario{
 		super(correo, contrasenia);
 	}
 	
-	public Estudiante(String correo, String contrasenia, ArrayList<Materia> listaMateriasInscritas, String nombre) {
+	public Estudiante(String correo, String contrasenia, List<Materia> listaMateriasInscritas, String nombre) {
 		super(correo, contrasenia);
 		this.listaMateriasInscritas = listaMateriasInscritas;
 		this.nombre = nombre;		
@@ -45,12 +51,20 @@ public class Estudiante extends Usuario{
 		this.nombre = nombre;		
 	}
 
-	public ArrayList<Materia> getListaMateriasInscritas() {
+	public List<Materia> getListaMateriasInscritas() {
 		return listaMateriasInscritas;
 	}
 
-	public void setListaMateriasInscritas(ArrayList<Materia> listaMateriasInscritas) {
+	public void setListaMateriasInscritas(List<Materia> listaMateriasInscritas) {
 		this.listaMateriasInscritas = listaMateriasInscritas;
+	}
+
+	public Carrera getCarrera() {
+		return carrera;
+	}
+
+	public void setCarrera(Carrera carrera) {
+		this.carrera = carrera;
 	}
 
 	public String getNombre() {
@@ -65,15 +79,15 @@ public class Estudiante extends Usuario{
 	public String toString() {
 		return "Estudiante" + 
 				super.toString() + 
-				"\nLista materias inscritas: " + listaMateriasInscritas + 
-				"\nNombre: " + nombre;
+				"\nNombre: " + nombre + 
+				"\nCarrera: " + carrera;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + Objects.hash(listaMateriasInscritas, nombre);
+		result = prime * result + Objects.hash(carrera, nombre);
 		return result;
 	}
 
@@ -88,7 +102,6 @@ public class Estudiante extends Usuario{
 		if (getClass() != obj.getClass())
 			return false;
 		Estudiante other = (Estudiante) obj;
-		return Objects.equals(listaMateriasInscritas, other.listaMateriasInscritas)
-				&& Objects.equals(nombre, other.nombre);
+		return carrera == other.carrera && Objects.equals(nombre, other.nombre);
 	}
 }
