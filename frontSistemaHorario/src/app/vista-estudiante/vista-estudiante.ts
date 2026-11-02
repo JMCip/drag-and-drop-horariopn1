@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Topbar, PestanaNav } from '../shared/topbar/topbar';
 import { SidebarSecciones } from './sidebar-secciones/sidebar-secciones';
@@ -16,6 +16,7 @@ import { SeccionModel } from '../models/seccion.model';
 })
 export class VistaEstudiante implements OnInit {
   private horarioService = inject(HorarioService);
+  private cdr = inject(ChangeDetectorRef);
 
   pestanas: PestanaNav[] = [
     { id: 'armar', etiqueta: 'Armar horario', icono: 'fa-calendar-plus' },
@@ -30,14 +31,21 @@ export class VistaEstudiante implements OnInit {
   ngOnInit(): void {
     this.horarioService.getSeccionesDisponibles().subscribe(datos => {
       this.todasLasSecciones = datos;
+      this.cdr.markForCheck();
     });
-    this.horarioService.getHorarioInscrito().subscribe(inscrito => {
-      this.horarioInscrito = inscrito;
-    });
+    this.cargarInscrito();
   }
 
-  actualizarInscrito(nuevas: SeccionModel[]): void {
-    this.horarioInscrito = [...nuevas];
+  actualizarInscrito(): void {
+    this.cargarInscrito();
     this.pestanaActiva = 'inscrito';
+  }
+
+  private cargarInscrito(): void {
+    this.horarioService.getHorarioInscrito().subscribe(inscrito => {
+      this.horarioInscrito = inscrito;
+      this.seccionesUbicadas = [...inscrito];
+      this.cdr.markForCheck();
+    });
   }
 }

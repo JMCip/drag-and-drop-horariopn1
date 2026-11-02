@@ -1,18 +1,19 @@
 package co.edu.unbosque.sistemahorario.dto;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class ProfesorDTO extends UsuarioDTO{
 	
-	private ArrayList<Long> listaIdMaterias;
+	private List<Long> listaIdMaterias = new ArrayList<>();
 	private String nombre;
 	
 	public ProfesorDTO() {
 		super();
 	}
 
-	public ProfesorDTO(ArrayList<Long> listaIdMaterias, String nombre) {
+	public ProfesorDTO(List<Long> listaIdMaterias, String nombre) {
 		super();
 		this.listaIdMaterias = listaIdMaterias;
 		this.nombre = nombre;
@@ -22,7 +23,7 @@ public class ProfesorDTO extends UsuarioDTO{
 		super(correo, contrasenia);
 	}
 	
-	public ProfesorDTO(String correo, String contrasenia,ArrayList<Long> listaIdMaterias, String nombre) {
+	public ProfesorDTO(String correo, String contrasenia, List<Long> listaIdMaterias, String nombre) {
 		super(correo, contrasenia);
 		this.listaIdMaterias = listaIdMaterias;
 		this.nombre = nombre;
@@ -33,11 +34,11 @@ public class ProfesorDTO extends UsuarioDTO{
 		this.nombre = nombre;
 	}
 
-	public ArrayList<Long> getListaIdMaterias() {
+	public List<Long> getListaIdMaterias() {
 		return listaIdMaterias;
 	}
 
-	public void setListaIdMaterias(ArrayList<Long> listaIdMaterias) {
+	public void setListaIdMaterias(List<Long> listaIdMaterias) {
 		this.listaIdMaterias = listaIdMaterias;
 	}
 

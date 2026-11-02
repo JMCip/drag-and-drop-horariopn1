@@ -1,46 +1,42 @@
-import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { AdminDTO } from '../models/usuario.model';
 
 @Injectable({ providedIn: 'root' })
 export class AdminService {
 
-  // private http = inject(HttpClient);
-  // private readonly urlBase = 'http://localhost:8080/admin';
+  private http = inject(HttpClient);
+  private readonly urlBase = 'http://localhost:8080/admin';
 
-  private adminsMemoria: AdminDTO[] = [
-    { id: 1, correo: 'admin.secretaria@unbosque.edu.co' }
-  ];
-
-  create(data: AdminDTO): Observable<number> {
-    const nuevoId = this.adminsMemoria.length + 1;
-    this.adminsMemoria.push({ ...data, id: nuevoId });
-    return of(1);
+  create(data: AdminDTO): Observable<string> {
+    return this.http.post(`${this.urlBase}/crear`, this.aParams(data), { responseType: 'text' });
   }
 
   getAll(): Observable<AdminDTO[]> {
-    return of([...this.adminsMemoria]);
+    return this.http.get<AdminDTO[]>(`${this.urlBase}/mostrartodo`).pipe(map(l => l ?? []));
   }
 
-  deleteById(id: number): Observable<number> {
-    this.adminsMemoria = this.adminsMemoria.filter(a => a.id !== id);
-    return of(1);
+  deleteById(id: number): Observable<string> {
+    const params = new HttpParams().set('id', id);
+    return this.http.delete(`${this.urlBase}/eliminar`, { params, responseType: 'text' });
   }
 
-  updateById(id: number, data: AdminDTO): Observable<number> {
-    const index = this.adminsMemoria.findIndex(a => a.id === id);
-    if (index !== -1) {
-      this.adminsMemoria[index] = { ...data, id };
-      return of(1);
-    }
-    return of(0);
+  updateById(id: number, data: AdminDTO): Observable<string> {
+    return this.http.put(`${this.urlBase}/actualizar`, this.aParams(data).set('id', id), { responseType: 'text' });
   }
 
   count(): Observable<number> {
-    return of(this.adminsMemoria.length);
+    return this.getAll().pipe(map(l => l.length));
   }
 
   exist(id: number): Observable<boolean> {
-    return of(this.adminsMemoria.some(a => a.id === id));
+    return this.getAll().pipe(map(l => l.some(a => a.id === id)));
+  }
+
+  private aParams(data: AdminDTO): HttpParams {
+    const params = new HttpParams().set('correo', data.correo);
+    return data.contrasenia ? params.set('contrasenia', data.contrasenia) : params;
   }
 }

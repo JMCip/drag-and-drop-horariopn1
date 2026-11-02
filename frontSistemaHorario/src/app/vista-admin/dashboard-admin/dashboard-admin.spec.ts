@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { DashboardAdmin } from './dashboard-admin';
 
 describe('DashboardAdmin', () => {
@@ -8,6 +9,7 @@ describe('DashboardAdmin', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [DashboardAdmin],
+      providers: [provideHttpClientTesting()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(DashboardAdmin);

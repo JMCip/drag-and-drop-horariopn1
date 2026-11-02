@@ -1,19 +1,19 @@
 <section class="seccion-panel">
   <div class="fila-metricas">
     <div class="tarjeta-resumen">
-      <span class="valor-resumen tabular-nums">6</span>
+      <span class="valor-resumen tabular-nums">{{ totalUsuarios }}</span>
       <span class="etiqueta-resumen">Total Usuarios</span>
     </div>
     <div class="tarjeta-resumen">
-      <span class="valor-resumen tabular-nums">3</span>
+      <span class="valor-resumen tabular-nums">{{ estudiantes.length }}</span>
       <span class="etiqueta-resumen">Estudiantes</span>
     </div>
     <div class="tarjeta-resumen">
-      <span class="valor-resumen tabular-nums">2</span>
+      <span class="valor-resumen tabular-nums">{{ profesores.length }}</span>
       <span class="etiqueta-resumen">Profesores</span>
     </div>
     <div class="tarjeta-resumen">
-      <span class="valor-resumen tabular-nums">1</span>
+      <span class="valor-resumen tabular-nums">{{ totalAdmins }}</span>
       <span class="etiqueta-resumen">Admins</span>
     </div>
   </div>
@@ -29,20 +29,18 @@
       <thead>
       <tr>
         <th>Nombre</th>
-        <th>Correo</th>
+        <th>{{ subPestanaListado === 'materias' ? 'Docente' : 'Correo' }}</th>
         <th>Detalle / Carrera</th>
       </tr>
       </thead>
       <tbody>
-      <tr>
-        <td>Jose Manuel Cipagauta</td>
-        <td>jcipagauta&#64;unbosque.edu.co</td>
-        <td>Ingeniería de Sistemas · 4 materias</td>
+      <tr *ngFor="let fila of filas">
+        <td>{{ fila.nombre }}</td>
+        <td>{{ fila.segunda }}</td>
+        <td>{{ fila.detalle }}</td>
       </tr>
-      <tr>
-        <td>Diego C</td>
-        <td>Diego&#64;unbosque.edu.co</td>
-        <td>Docente · Bases de Datos, Ing. Software I</td>
+      <tr *ngIf="filas.length === 0">
+        <td colspan="3">No hay registros.</td>
       </tr>
       </tbody>
     </table>

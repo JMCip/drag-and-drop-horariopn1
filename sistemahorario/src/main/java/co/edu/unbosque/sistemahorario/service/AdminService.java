@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import co.edu.unbosque.sistemahorario.dto.AdminDTO;
@@ -31,6 +32,9 @@ public class AdminService implements CRUDOPeration<AdminDTO>{
 	private EstudianteRepository estRepo;
 	@Autowired
 	private ModelMapper mapper;
+	
+	@Autowired
+	private PasswordEncoder encoder;
 
 	@Override
 	public int create(AdminDTO data) {
@@ -48,10 +52,12 @@ public class AdminService implements CRUDOPeration<AdminDTO>{
 			return 2;
 		}
 		
-		if(profRepo.existByCorreo(data.getCorreo()) || estRepo.existByCorreo(data.getCorreo()) || admRepo.existByCorreo(data.getCorreo()))
+		if(profRepo.existsByCorreo(data.getCorreo()) || estRepo.existsByCorreo(data.getCorreo()) || admRepo.existsByCorreo(data.getCorreo()))
 			return 3;
 		
-		admRepo.save(mapper.map(data, Admin.class));
+		Admin nuevo = mapper.map(data, Admin.class);
+		nuevo.setContrasenia(encoder.encode(data.getContrasenia()));
+		admRepo.save(nuevo);
 		return 0;
 	}
 
@@ -89,24 +95,30 @@ public class AdminService implements CRUDOPeration<AdminDTO>{
 			return 1;
 		}
 		
-		try {
-			LanzadorDeExcepcion.verificarContrasenia(data.getContrasenia());
-		} catch(InvalidPasswordException e) {
-			System.out.println("Error de contraseña: " + e.getMessage());
-			return 2;
+		// Sin contraseña se conserva la actual
+		boolean cambiaContrasenia = data.getContrasenia() != null && !data.getContrasenia().isBlank();
+
+		if(cambiaContrasenia) {
+			try {
+				LanzadorDeExcepcion.verificarContrasenia(data.getContrasenia());
+			} catch(InvalidPasswordException e) {
+				System.out.println("Error de contraseña: " + e.getMessage());
+				return 2;
+			}
 		}
 		
-		if(profRepo.existByCorreo(data.getCorreo()) || estRepo.existByCorreo(data.getCorreo()))
+		if(profRepo.existsByCorreo(data.getCorreo()) || estRepo.existsByCorreo(data.getCorreo()))
 			return 3;
 		
 		if(find.isPresent()) {
 			Admin temp = find.get();
 			
-			if(admRepo.existByCorreo(data.getCorreo()) && temp.getCorreo() != data.getCorreo())
+			if(admRepo.existsByCorreo(data.getCorreo()) && !temp.getCorreo().equalsIgnoreCase(data.getCorreo()))
 				return 5;
 			
 			temp.setCorreo(data.getCorreo());
-			temp.setContrasenia(data.getContrasenia());
+			if(cambiaContrasenia)
+				temp.setContrasenia(encoder.encode(data.getContrasenia()));
 			admRepo.save(temp);
 			return 0;
 		}
@@ -133,7 +145,7 @@ public class AdminService implements CRUDOPeration<AdminDTO>{
 
 	    List<Admin> entityList = (List<Admin>) admRepo.findAll();
 	    for (Admin user : entityList) {
-	        if (user.getCorreo().equalsIgnoreCase(correo) && user.getContrasenia().equals(pw)) {
+	        if (user.getCorreo().equalsIgnoreCase(correo) && encoder.matches(pw, user.getContrasenia())) {
 	            return 0;
 	        }
 	    }

@@ -1,5 +1,7 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../services/auth.service';
+import { MateriaService } from '../../services/materia.service';
 
 @Component({
   selector: 'app-cronograma-profesor',
@@ -8,9 +10,20 @@ import { CommonModule } from '@angular/common';
   templateUrl: './cronograma-profesor.html',
   styleUrl: './cronograma-profesor.css'
 })
-export class CronogramaProfesor {
-  clasesAsignadas = [
-    { materia: 'Bases de Datos (Grupo 1)', franja: 'Lun 07:00–09:00 · Mié 09:00–11:00' },
-    { materia: 'Ingeniería de Software I (Grupo 1)', franja: 'Lun 09:00–11:00 · Vie 10:00–12:00' }
-  ];
+export class CronogramaProfesor implements OnInit {
+  private authService = inject(AuthService);
+  private materiaService = inject(MateriaService);
+  private cdr = inject(ChangeDetectorRef);
+
+  clasesAsignadas: { materia: string; franja: string }[] = [];
+
+  ngOnInit(): void {
+    const idProfesor = this.authService.obtenerUsuarioActual().id;
+    this.materiaService.getAll().subscribe(materias => {
+      this.clasesAsignadas = materias
+        .filter(m => m.idProfesorAsignado === idProfesor)
+        .map(m => ({ materia: `${m.nombreMateria} (Grupo ${m.grupo})`, franja: this.materiaService.formatearHorario(m) }));
+      this.cdr.markForCheck();
+    });
+  }
 }

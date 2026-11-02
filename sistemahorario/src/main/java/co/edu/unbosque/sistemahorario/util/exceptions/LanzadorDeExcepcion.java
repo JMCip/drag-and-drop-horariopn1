@@ -10,33 +10,37 @@ public class LanzadorDeExcepcion {
 	public static void verificarFranjaHoraria(int[] inicio, int[] fin) throws InvalidTimeSlotException {
 
 		for (int i = 0; i < 5; i++) {
-			if (Math.abs(fin[i] - inicio[i]) > 4) {
+			if (inicio[i] == -1 && fin[i] == -1) {
+				continue;
+			}
+
+			if (fin[i] - inicio[i] < 1) {
+				throw new InvalidTimeSlotException("La hora de fin debe ser mayor a la de inicio");
+			}
+
+			if (fin[i] - inicio[i] > 4) {
 				throw new InvalidTimeSlotException("Las materias no pueden durar mas de 4 horas");
 			}
 
-			if (i != 5) {
-				if (inicio[i] >= 7 && fin[i] <= 12) {
-					if (fin[i] - inicio[i] < 1)
-						throw new InvalidTimeSlotException(
-								"Las materias entre semana son de 7 a 12 antes del almuerzo");
+			boolean enLaManana = inicio[i] >= 7 && fin[i] <= 13;
+			boolean enLaTarde = inicio[i] >= 14 && fin[i] <= 22;
 
-				} else if (inicio[i] >= 13 && fin[i] <= 22) {
-					if (fin[i] - inicio[i] < 1) {
-						throw new InvalidTimeSlotException(
-								"Las materias entre semana son de 13 a 22 despues del almuerzo");
-
-					}
-				} else {
-					throw new InvalidTimeSlotException(
-							"Las materias entre semana no pueden estar entre las 12 y las 13 (hora de almuerzo)");
-				}
-
-			} else {
-				if ((inicio[i] < 8 || inicio[i] % 2 != 0) || (fin[i] > 12 || fin[i] % 2 != 0))
-					throw new InvalidTimeSlotException("Las materias de los sabados inician de 8 a 12");
-
+			if (!enLaManana && !enLaTarde) {
+				throw new InvalidTimeSlotException(
+						"Las materias son de 7 a 13 o de 14 a 22, no pueden cruzar la hora de almuerzo");
 			}
 		}
+	}
+
+	public static boolean hayCruce(Materia a, Materia b) {
+
+		for (int i = 0; i < 5; i++) {
+			if (a.getInicio()[i] != -1 && b.getInicio()[i] != -1
+					&& a.getInicio()[i] < b.getFin()[i] && b.getInicio()[i] < a.getFin()[i]) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public static void verificarDisponibilidad(Usuario user, Materia materia) throws InvalidTimeSlotException {
@@ -44,29 +48,17 @@ public class LanzadorDeExcepcion {
 		if (user instanceof Profesor) {
 			Profesor prof = (Profesor) user;
 			for (Materia profMateria : prof.getListaMaterias()) {
-				int[] inicio = profMateria.getInicio();
-				int[] fin = profMateria.getFin();
-				for (int i = 0; i < 5; i++) {
-					if (inicio[i] != -1 && materia.getInicio()[i] != -1) {
-						if (inicio[i] == materia.getInicio()[i] || fin[i] == materia.getFin()[i]) {
-							throw new InvalidTimeSlotException("Esa materia choca con el horario del profesor en algun punto");
-						}
-					}
+				if (hayCruce(profMateria, materia)) {
+					throw new InvalidTimeSlotException("Esa materia choca con el horario del profesor en algun punto");
 				}
 			}
 		}
-		
+
 		if(user instanceof Estudiante) {
 			Estudiante est = (Estudiante) user;
 			for (Materia estMateria : est.getListaMateriasInscritas()) {
-				int[] inicio = estMateria.getInicio();
-				int[] fin = estMateria.getFin();
-				for (int i = 0; i < 5; i++) {
-					if (inicio[i] != -1 && materia.getInicio()[i] != -1) {
-						if (inicio[i] == materia.getInicio()[i] || fin[i] == materia.getFin()[i]) {
-							throw new InvalidTimeSlotException("Esa materia choca con el horario del estudiante en algun punto");
-						}
-					}
+				if (hayCruce(estMateria, materia)) {
+					throw new InvalidTimeSlotException("Esa materia choca con el horario del estudiante en algun punto");
 				}
 			}
 		}

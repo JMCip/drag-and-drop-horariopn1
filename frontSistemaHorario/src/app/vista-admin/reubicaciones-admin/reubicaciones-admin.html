@@ -1,18 +1,24 @@
 <section class="tarjeta-reubicacion">
-  <h3>A) Mover estudiante de grupo (RF17)</h3>
+  <h3>Mover estudiante de grupo (RF17)</h3>
   <div class="campo">
-    <label>Estudiante</label>
-    <input type="text" [(ngModel)]="estudianteSeleccionado" />
+    <label for="estudianteInput">Estudiante</label>
+    <select id="estudianteInput" [(ngModel)]="idEstudiante" (ngModelChange)="cambiarEstudiante()">
+      <option [ngValue]="null">Elegir estudiante</option>
+      <option *ngFor="let e of estudiantes" [ngValue]="e.id">{{ e.nombre }} ({{ e.correo }})</option>
+    </select>
   </div>
   <div class="campo">
-    <label>Materia y grupo origen</label>
-    <input type="text" value="Bases de Datos (BD-101) — Grupo 1" disabled />
+    <label for="origenInput">Materia y grupo origen</label>
+    <select id="origenInput" [(ngModel)]="idOrigen" (ngModelChange)="idDestino = null">
+      <option [ngValue]="null">Elegir grupo de origen</option>
+      <option *ngFor="let m of materiasDelEstudiante" [ngValue]="m.id">{{ etiquetaGrupo(m) }}</option>
+    </select>
   </div>
   <div class="campo">
-    <label>Grupo destino (misma materia)</label>
-    <select [(ngModel)]="grupoDestinoEstudiante">
-      <option value="2">BD-101 · Grupo 2 (Mar/Jue 07:00–09:00) — Sin choque</option>
-      <option value="3">BD-101 · Grupo 3 (Simular Choque 409)</option>
+    <label for="destinoInput">Grupo destino (misma materia)</label>
+    <select id="destinoInput" [(ngModel)]="idDestino">
+      <option [ngValue]="null">Elegir grupo de destino</option>
+      <option *ngFor="let m of gruposDestino" [ngValue]="m.id">{{ etiquetaGrupo(m) }}</option>
     </select>
   </div>
 

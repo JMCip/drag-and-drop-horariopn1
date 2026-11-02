@@ -4,11 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import co.edu.unbosque.sistemahorario.dto.EstudianteDTO;
 import co.edu.unbosque.sistemahorario.entity.Estudiante;
+import co.edu.unbosque.sistemahorario.entity.Materia;
 import co.edu.unbosque.sistemahorario.repository.AdminRepository;
 import co.edu.unbosque.sistemahorario.repository.EstudianteRepository;
 import co.edu.unbosque.sistemahorario.repository.ProfesorRepository;
@@ -17,6 +20,8 @@ import co.edu.unbosque.sistemahorario.util.exceptions.InvalidNameFormatException
 import co.edu.unbosque.sistemahorario.util.exceptions.InvalidPasswordException;
 import co.edu.unbosque.sistemahorario.util.exceptions.LanzadorDeExcepcion;
 
+@Service
+@Transactional
 public class EstudianteService implements CRUDOPeration<EstudianteDTO>{
 
 	@Autowired
@@ -29,7 +34,7 @@ public class EstudianteService implements CRUDOPeration<EstudianteDTO>{
 	private AdminRepository admRepo;
 	
 	@Autowired
-	private ModelMapper mapper;
+	private PasswordEncoder encoder;
 
 	@Override
 	public int create(EstudianteDTO data) {
@@ -54,10 +59,12 @@ public class EstudianteService implements CRUDOPeration<EstudianteDTO>{
 			return 3;
 		}
 		
-		if(profRepo.existByCorreo(data.getCorreo()) || estRepo.existByCorreo(data.getCorreo()) || admRepo.existByCorreo(data.getCorreo()))
+		if(profRepo.existsByCorreo(data.getCorreo()) || estRepo.existsByCorreo(data.getCorreo()) || admRepo.existsByCorreo(data.getCorreo()))
 			return 4;
 		
-		estRepo.save(mapper.map(data, Estudiante.class));
+		Estudiante nuevo = new Estudiante(data.getCorreo(), encoder.encode(data.getContrasenia()), data.getNombre());
+		nuevo.setCarrera(data.getCarrera());
+		estRepo.save(nuevo);
 		return 0;
 	}
 
@@ -67,8 +74,7 @@ public class EstudianteService implements CRUDOPeration<EstudianteDTO>{
 		List<EstudianteDTO> dtoList = new ArrayList<>();
 		
 		entityList.forEach((entity) -> {
-			EstudianteDTO dto = mapper.map(entity, EstudianteDTO.class);
-			dtoList.add(dto);
+			dtoList.add(toDTO(entity));
 		});
 		
 		return dtoList;
@@ -78,6 +84,10 @@ public class EstudianteService implements CRUDOPeration<EstudianteDTO>{
 	public int deleteById(Long id) {
 		Optional<Estudiante> find = estRepo.findById(id);
 		if(find.isPresent()) {
+			// Materia es la duena de la relacion: hay que sacarlo de sus materias antes de borrarlo
+			for (Materia materia : find.get().getListaMateriasInscritas()) {
+				materia.getListaEstudiantes().removeIf(e -> e.getId() == id);
+			}
 			estRepo.delete(find.get());
 			return 0;
 		}
@@ -95,11 +105,16 @@ public class EstudianteService implements CRUDOPeration<EstudianteDTO>{
 			return 1;
 		}
 		
-		try {
-			LanzadorDeExcepcion.verificarContrasenia(data.getContrasenia());
-		} catch(InvalidPasswordException e) {
-			System.out.println("Error de contraseña: " + e.getMessage());
-			return 2;
+		// Sin contraseña se conserva la actual
+		boolean cambiaContrasenia = data.getContrasenia() != null && !data.getContrasenia().isBlank();
+
+		if(cambiaContrasenia) {
+			try {
+				LanzadorDeExcepcion.verificarContrasenia(data.getContrasenia());
+			} catch(InvalidPasswordException e) {
+				System.out.println("Error de contraseña: " + e.getMessage());
+				return 2;
+			}
 		}
 		
 		try {
@@ -109,18 +124,20 @@ public class EstudianteService implements CRUDOPeration<EstudianteDTO>{
 			return 3;
 		}
 		
-		if(profRepo.existByCorreo(data.getCorreo()) || admRepo.existByCorreo(data.getCorreo()))
+		if(profRepo.existsByCorreo(data.getCorreo()) || admRepo.existsByCorreo(data.getCorreo()))
 			return 4;
 		
 		if(find.isPresent()) {
 			Estudiante temp = find.get();
 			
-			if(estRepo.existByCorreo(data.getCorreo()) && temp.getCorreo() != data.getCorreo())
+			if(estRepo.existsByCorreo(data.getCorreo()) && !temp.getCorreo().equalsIgnoreCase(data.getCorreo()))
 				return 5;
 			
 			temp.setNombre(data.getNombre());
+			temp.setCarrera(data.getCarrera());
 			temp.setCorreo(data.getCorreo());
-			temp.setContrasenia(data.getContrasenia());
+			if(cambiaContrasenia)
+				temp.setContrasenia(encoder.encode(data.getContrasenia()));
 			estRepo.save(temp);
 			return 0;
 		}
@@ -138,6 +155,16 @@ public class EstudianteService implements CRUDOPeration<EstudianteDTO>{
 		return estRepo.existsById(id);
 	}
 	
+	private EstudianteDTO toDTO(Estudiante entity) {
+		List<Long> idsMaterias = new ArrayList<>();
+		entity.getListaMateriasInscritas().forEach((materia) -> idsMaterias.add(materia.getId()));
+		
+		EstudianteDTO dto = new EstudianteDTO(entity.getCorreo(), null, idsMaterias, entity.getNombre());
+		dto.setId(entity.getId());
+		dto.setCarrera(entity.getCarrera());
+		return dto;
+	}
+	
 	public int validarInicioSesion(String correo, String pw) {
 	    try {
 	        LanzadorDeExcepcion.verificarEmail(correo);
@@ -148,7 +175,7 @@ public class EstudianteService implements CRUDOPeration<EstudianteDTO>{
 
 	    List<Estudiante> entityList = (List<Estudiante>) estRepo.findAll();
 	    for (Estudiante user : entityList) {
-	        if (user.getCorreo().equalsIgnoreCase(correo) && user.getContrasenia().equals(pw)) {
+	        if (user.getCorreo().equalsIgnoreCase(correo) && encoder.matches(pw, user.getContrasenia())) {
 	            return 0;
 	        }
 	    }

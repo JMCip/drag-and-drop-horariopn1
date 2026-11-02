@@ -1,49 +1,24 @@
-import { Injectable } from '@angular/core';
-import { Observable, Subject, of } from 'rxjs';
-import { delay } from 'rxjs/operators';
+import { Injectable, inject } from '@angular/core';
+import { Observable, Subject, forkJoin, from, of } from 'rxjs';
+import { concatMap, delay, map, switchMap, toArray } from 'rxjs/operators';
+import { MateriaDTO } from '../models/materia.model';
 import { SeccionModel } from '../models/seccion.model';
 import { RespuestaValidacionModel } from '../models/validacion.model';
+import { AuthService } from './auth.service';
+import { MateriaService } from './materia.service';
+import { ProfesorService } from './profesor.service';
 
 @Injectable({ providedIn: 'root' })
 export class HorarioService {
   public seccionArrastrada$ = new Subject<SeccionModel | null>();
   public solicitudAgregar$ = new Subject<SeccionModel>();
 
-  private mockSecciones: SeccionModel[] = [
-    {
-      id: 101, codigoMateria: 'BD-101', nombreMateria: 'Bases de Datos', grupo: 1,
-      docente: 'Prof. A. Pérez', semestre: 4, carrera: 'Ingeniería de Sistemas',
-      franjas: [{ dia: 'Lun', horaInicio: 7, horaFin: 9 }, { dia: 'Mié', horaInicio: 9, horaFin: 11 }]
-    },
-    {
-      id: 102, codigoMateria: 'BD-101', nombreMateria: 'Bases de Datos', grupo: 2,
-      docente: 'Prof. M. Gómez', semestre: 4, carrera: 'Ingeniería de Sistemas',
-      franjas: [{ dia: 'Mar', horaInicio: 7, horaFin: 9 }, { dia: 'Jue', horaInicio: 7, horaFin: 9 }]
-    },
-    {
-      id: 201, codigoMateria: 'CAL-202', nombreMateria: 'Cálculo II', grupo: 1,
-      docente: 'Prof. R. Díaz', semestre: 2, carrera: 'Ingeniería de Sistemas',
-      franjas: [{ dia: 'Mar', horaInicio: 9, horaFin: 11 }, { dia: 'Jue', horaInicio: 9, horaFin: 11 }]
-    },
-    {
-      id: 202, codigoMateria: 'CAL-202', nombreMateria: 'Cálculo II', grupo: 2,
-      docente: 'Prof. R. Díaz', semestre: 2, carrera: 'Ingeniería de Sistemas',
-      franjas: [{ dia: 'Lun', horaInicio: 8, horaFin: 10 }, { dia: 'Vie', horaInicio: 7, horaFin: 9 }]
-    },
-    {
-      id: 301, codigoMateria: 'IS-301', nombreMateria: 'Ingeniería de Software I', grupo: 1,
-      docente: 'Prof. A. Pérez', semestre: 5, carrera: 'Ingeniería de Sistemas',
-      franjas: [{ dia: 'Lun', horaInicio: 7, horaFin: 9 }, { dia: 'Vie', horaInicio: 10, horaFin: 12 }]
-    },
-    {
-      id: 401, codigoMateria: 'RED-401', nombreMateria: 'Redes de Computadores', grupo: 1,
-      docente: 'Prof. C. Ruiz', semestre: 6, carrera: 'Ingeniería de Sistemas',
-      franjas: [{ dia: 'Mié', horaInicio: 13, horaFin: 15 }, { dia: 'Vie', horaInicio: 13, horaFin: 15 }]
-    }
-  ];
+  private materiaService = inject(MateriaService);
+  private profesorService = inject(ProfesorService);
+  private authService = inject(AuthService);
 
   getSeccionesDisponibles(): Observable<SeccionModel[]> {
-    return of(this.mockSecciones);
+    return this.obtenerSecciones(() => true);
   }
 
   validarChoque(seccionCandidata: SeccionModel, seccionesActuales: SeccionModel[]): Observable<RespuestaValidacionModel> {
@@ -69,13 +44,36 @@ export class HorarioService {
   }
 
   guardarHorarioInscrito(secciones: SeccionModel[]): Observable<{ mensaje: string }> {
-    localStorage.setItem('horario_inscrito_mock', JSON.stringify(secciones));
-    return of({ mensaje: 'Horario guardado exitosamente' }).pipe(delay(200));
+    const idEstudiante = this.authService.obtenerUsuarioActual().id;
+
+    return this.getHorarioInscrito().pipe(
+      switchMap(inscritas => {
+        const quitadas = inscritas.filter(i => !secciones.some(s => s.id === i.id));
+        const nuevas = secciones.filter(s => !inscritas.some(i => i.id === s.id));
+        // Primero se liberan los horarios y despues se inscriben las nuevas
+        return from([
+          ...quitadas.map(s => this.materiaService.desinscribirEstudiante(idEstudiante, s.id)),
+          ...nuevas.map(s => this.materiaService.inscribirEstudiante(idEstudiante, s.id))
+        ]);
+      }),
+      concatMap(peticion => peticion),
+      toArray(),
+      map(() => ({ mensaje: 'Horario guardado exitosamente' }))
+    );
   }
 
   getHorarioInscrito(): Observable<SeccionModel[]> {
-    const guardado = localStorage.getItem('horario_inscrito_mock');
-    return of(guardado ? JSON.parse(guardado) : []);
+    const idEstudiante = this.authService.obtenerUsuarioActual().id;
+    return this.obtenerSecciones(m => m.listaIdEstudiantes.includes(idEstudiante));
+  }
+
+  private obtenerSecciones(filtro: (materia: MateriaDTO) => boolean): Observable<SeccionModel[]> {
+    return forkJoin([this.materiaService.getAll(), this.profesorService.getAll()]).pipe(
+      map(([materias, profesores]) => materias.filter(filtro).map(m => {
+        const docente = profesores.find(p => p.id === m.idProfesorAsignado)?.nombre ?? 'Sin asignar';
+        return this.materiaService.adaptarMateriaASeccion(m, docente);
+      }))
+    );
   }
 
   private formatearHora(h: number): string {

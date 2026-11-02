@@ -1,4 +1,4 @@
-  import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, inject, HostListener } from '@angular/core';
+  import { ChangeDetectorRef, Component, Input, Output, EventEmitter, OnInit, OnDestroy, inject, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { SeccionModel } from '../../models/seccion.model';
@@ -18,6 +18,7 @@ interface AccionHistorial {
 })
 export class CronogramaHorario implements OnInit, OnDestroy {
   private horarioService = inject(HorarioService);
+  private cdr = inject(ChangeDetectorRef);
   private subs = new Subscription();
 
   @Input() seccionesUbicadas: SeccionModel[] = [];
@@ -116,8 +117,10 @@ export class CronogramaHorario implements OnInit, OnDestroy {
           setTimeout(() => {
             this.seccionConflictoId = null;
             this.candidataEnConflicto = null;
+            this.cdr.markForCheck();
           }, 1500);
         }
+        this.cdr.markForCheck();
       }
     });
   }
@@ -146,10 +149,19 @@ export class CronogramaHorario implements OnInit, OnDestroy {
 
   confirmarGuardado(): void {
     this.guardando = true;
-    this.horarioService.guardarHorarioInscrito(this.seccionesUbicadas).subscribe(() => {
-      this.guardando = false;
-      this.mostrarModalConfirmar = false;
-      this.horarioGuardado.emit(this.seccionesUbicadas);
+    this.horarioService.guardarHorarioInscrito(this.seccionesUbicadas).subscribe({
+      next: () => {
+        this.guardando = false;
+        this.mostrarModalConfirmar = false;
+        this.horarioGuardado.emit(this.seccionesUbicadas);
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.guardando = false;
+        this.mostrarModalConfirmar = false;
+        this.mostrarToast('error', 'No se pudo inscribir', typeof err.error === 'string' && err.error ? err.error : 'Intenta de nuevo.');
+        this.cdr.markForCheck();
+      }
     });
   }
 
@@ -158,6 +170,7 @@ export class CronogramaHorario implements OnInit, OnDestroy {
     if (tipo !== 'error') {
       setTimeout(() => {
         if (this.toast?.titulo === titulo) this.toast = null;
+        this.cdr.markForCheck();
       }, 4000);
     }
   }

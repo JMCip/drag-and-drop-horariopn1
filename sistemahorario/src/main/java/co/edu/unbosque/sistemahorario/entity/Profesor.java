@@ -1,11 +1,11 @@
 package co.edu.unbosque.sistemahorario.entity;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -15,8 +15,8 @@ import jakarta.persistence.Table;
 public class Profesor extends Usuario{
 	
 	@JsonIgnore
-	@OneToMany(mappedBy = "materia", cascade = CascadeType.ALL)
-	private ArrayList<Materia> listaMaterias;
+	@OneToMany(mappedBy = "profesorAsignado")
+	private List<Materia> listaMaterias = new ArrayList<>();
 
 	private String nombre;
 	
@@ -24,7 +24,7 @@ public class Profesor extends Usuario{
 		super();
 	}
 
-	public Profesor(ArrayList<Materia> listaMaterias, String nombre) {
+	public Profesor(List<Materia> listaMaterias, String nombre) {
 		super();
 		this.listaMaterias = listaMaterias;
 		this.nombre = nombre;
@@ -34,7 +34,7 @@ public class Profesor extends Usuario{
 		super(correo, contrasenia);
 	}
 	
-	public Profesor(String correo, String contrasenia, ArrayList<Materia> listaMaterias, String nombre) {
+	public Profesor(String correo, String contrasenia, List<Materia> listaMaterias, String nombre) {
 		super(correo, contrasenia);
 		this.listaMaterias = listaMaterias;
 		this.nombre = nombre;
@@ -45,11 +45,11 @@ public class Profesor extends Usuario{
 		this.nombre = nombre;
 	}
 
-	public ArrayList<Materia> getListaMaterias() {
+	public List<Materia> getListaMaterias() {
 		return listaMaterias;
 	}
 
-	public void setListaMaterias(ArrayList<Materia> listaMaterias) {
+	public void setListaMaterias(List<Materia> listaMaterias) {
 		this.listaMaterias = listaMaterias;
 	}
 
@@ -65,7 +65,6 @@ public class Profesor extends Usuario{
 	public String toString() {
 		return "Profesor" + 
 				super.toString() + 
-				"\nLista materias: " + listaMaterias + 
 				"\nNombre: " + nombre;
 	}
 
@@ -73,7 +72,7 @@ public class Profesor extends Usuario{
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + Objects.hash(listaMaterias, nombre);
+		result = prime * result + Objects.hash(nombre);
 		return result;
 	}
 
@@ -88,6 +87,6 @@ public class Profesor extends Usuario{
 		if (getClass() != obj.getClass())
 			return false;
 		Profesor other = (Profesor) obj;
-		return Objects.equals(listaMaterias, other.listaMaterias) && Objects.equals(nombre, other.nombre);
+		return Objects.equals(nombre, other.nombre);
 	}
 }

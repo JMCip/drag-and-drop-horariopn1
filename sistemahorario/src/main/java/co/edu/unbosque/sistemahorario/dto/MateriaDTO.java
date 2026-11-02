@@ -2,6 +2,7 @@ package co.edu.unbosque.sistemahorario.dto;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 import co.edu.unbosque.sistemahorario.util.enums.Carrera;
@@ -14,8 +15,9 @@ public class MateriaDTO {
 	private String nombreMateria;
 	private Carrera carrera;
 	private short semestre;
+	private int grupo = 1;
 	private Long idProfesorAsignado;
-	private ArrayList<Long> listaIdEstudiantes;
+	private List<Long> listaIdEstudiantes = new ArrayList<>();
 	
 	public MateriaDTO() {
 		super();
@@ -31,7 +33,7 @@ public class MateriaDTO {
 	}
 
 	public MateriaDTO(int[] inicio, int[] fin, String nombreMateria, Carrera carrera, short semestre,
-			Long idProfesorAsignado, ArrayList<Long> listaIdEstudiantes) {
+			Long idProfesorAsignado, List<Long> listaIdEstudiantes) {
 		this.inicio = inicio;
 		this.fin = fin;
 		this.nombreMateria = nombreMateria;
@@ -89,6 +91,14 @@ public class MateriaDTO {
 		this.semestre = semestre;
 	}
 
+	public int getGrupo() {
+		return grupo;
+	}
+
+	public void setGrupo(int grupo) {
+		this.grupo = grupo;
+	}
+
 	public Long getIdProfesorAsignado() {
 		return idProfesorAsignado;
 	}
@@ -97,11 +107,11 @@ public class MateriaDTO {
 		this.idProfesorAsignado = idProfesorAsignado;
 	}
 
-	public ArrayList<Long> getListaIdEstudiantes() {
+	public List<Long> getListaIdEstudiantes() {
 		return listaIdEstudiantes;
 	}
 
-	public void setListaIdEstudiantes(ArrayList<Long> listaIdEstudiantes) {
+	public void setListaIdEstudiantes(List<Long> listaIdEstudiantes) {
 		this.listaIdEstudiantes = listaIdEstudiantes;
 	}
 
@@ -109,11 +119,12 @@ public class MateriaDTO {
 	public String toString() {
 		return "Materia " + 
 				"\nId: " + id + 
-				"\nInicio: " + inicio + 
-				"\nFin: " + fin +	
+				"\nInicio: " + Arrays.toString(inicio) + 
+				"\nFin: " + Arrays.toString(fin) +	
 				"\nNombre materia:" + nombreMateria + 
 				"\nCarrera: " + carrera + 
 				"\nSemestre: " + semestre + 
+				"\nGrupo: " + grupo + 
 				"\nId profesor asignado: " + idProfesorAsignado + 
 				"\nLista id estudiantes: " + listaIdEstudiantes;
 	}
@@ -126,7 +137,7 @@ public class MateriaDTO {
 		result = prime * result + Arrays.hashCode(fin);
 		result = prime * result + Arrays.hashCode(inicio);
 		result = prime * result
-				+ Objects.hash(carrera, id, idProfesorAsignado, listaIdEstudiantes, nombreMateria, semestre);
+				+ Objects.hash(carrera, grupo, id, idProfesorAsignado, listaIdEstudiantes, nombreMateria, semestre);
 		return result;
 	}
 
@@ -143,6 +154,7 @@ public class MateriaDTO {
 		return carrera == other.carrera && Arrays.equals(fin, other.fin) && id == other.id
 				&& Objects.equals(idProfesorAsignado, other.idProfesorAsignado) && Arrays.equals(inicio, other.inicio)
 				&& Objects.equals(listaIdEstudiantes, other.listaIdEstudiantes)
-				&& Objects.equals(nombreMateria, other.nombreMateria) && semestre == other.semestre;
+				&& Objects.equals(nombreMateria, other.nombreMateria) && semestre == other.semestre
+				&& grupo == other.grupo;
 	}
 }
