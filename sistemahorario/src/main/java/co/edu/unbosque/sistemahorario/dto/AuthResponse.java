@@ -1,5 +1,11 @@
 package co.edu.unbosque.sistemahorario.dto;
 
+/**
+ * Respuesta del login ({@code POST /api/auth/login}).
+ * <p>
+ * Lleva el token JWT y los datos que el front necesita para decidir qué vista mostrar:
+ * id, rol ({@code ADMIN}, {@code PROFESOR} o {@code ESTUDIANTE}), nombre y correo del usuario.
+ */
 public class AuthResponse {
     private long id;
     private String token;

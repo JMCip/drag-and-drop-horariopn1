@@ -19,6 +19,13 @@ import co.edu.unbosque.sistemahorario.service.AdminService;
 
 
 
+/**
+ * Controlador REST de administradores ({@code /admin}).
+ * <p>
+ * Según {@code SecurityConfig}, solo el rol ADMIN puede usar estos endpoints.
+ * Los servicios devuelven un código entero (0 = éxito) y este controlador lo traduce
+ * a un estado HTTP con un mensaje.
+ */
 @RestController
 @RequestMapping("/admin")
 public class AdminController {
@@ -31,6 +38,14 @@ public class AdminController {
 		
 	}
 	
+	/**
+	 * Crea un administrador.
+	 *
+	 * @param correo      correo del nuevo administrador (debe ser único en todo el sistema)
+	 * @param contrasenia contraseña en texto plano; se guarda cifrada con BCrypt
+	 * @return 201 si se creó; 406 si el correo o la contraseña tienen formato inválido;
+	 *         400 si el correo ya existe; 500 en cualquier otro caso
+	 */
 	@PostMapping("/crear")
 	public ResponseEntity<String> crearAdmin(@RequestParam String correo, @RequestParam String contrasenia) {
 		
@@ -53,6 +68,11 @@ public class AdminController {
 					
 }
 	
+	/**
+	 * Lista todos los administradores.
+	 *
+	 * @return 200 con la lista de {@link AdminDTO}
+	 */
 	@GetMapping("/mostrartodo")
 	public ResponseEntity<List<AdminDTO>> obtenertodo() {
 		List<AdminDTO> listaAdmin = admServ.getAll();
@@ -61,6 +81,12 @@ public class AdminController {
 		
 		}
 	
+	/**
+	 * Elimina un administrador por su id.
+	 *
+	 * @param id identificador del administrador
+	 * @return 200 si se eliminó; 404 si no existe; 500 en cualquier otro caso
+	 */
 	@DeleteMapping("/eliminar")
 	public ResponseEntity<String> eliminarAdmin(@RequestParam Long id) {
 	
@@ -74,6 +100,15 @@ public class AdminController {
 		return new ResponseEntity<String>("Error interno del servidor",HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 	
+	/**
+	 * Actualiza el correo (y opcionalmente la contraseña) de un administrador.
+	 *
+	 * @param correo      nuevo correo
+	 * @param contrasenia nueva contraseña; si no se envía se conserva la actual
+	 * @param id          identificador del administrador a modificar
+	 * @return 200 si se actualizó; 406 si el formato del correo o la contraseña es inválido;
+	 *         400 si el correo ya está en uso; 404 si no existe; 500 en cualquier otro caso
+	 */
 	@PutMapping("/actualizar")
 	public ResponseEntity<String> actualizarAdmin(@RequestParam String correo, @RequestParam(required = false) String contrasenia, @RequestParam Long id) {
 		
@@ -100,6 +135,16 @@ public class AdminController {
 		
 	}
 	
+	/**
+	 * Valida un correo y una contraseña de administrador sin generar token.
+	 * <p>
+	 * Es un endpoint heredado: el inicio de sesión real del sistema es
+	 * {@code POST /api/auth/login} ({@link AuthController}).
+	 *
+	 * @param correo      correo del administrador
+	 * @param contrasenia contraseña en texto plano
+	 * @return 200 si son correctos; 400 si el formato del correo es inválido; 401 si no coinciden
+	 */
 	@PostMapping("/iniciarsesion")
 	public ResponseEntity<String> validarSesion(@RequestParam String correo, @RequestParam String contrasenia){
 		int status = admServ.validarInicioSesion(correo, contrasenia);

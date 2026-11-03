@@ -21,29 +21,70 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+/**
+ * Un <b>grupo</b> de una materia (tabla {@code materia}).
+ * <p>
+ * No representa la asignatura en abstracto sino un grupo concreto: la pareja
+ * ({@code nombreMateria}, {@code grupo}) es única. Cada grupo tiene su propio horario,
+ * su profesor y sus estudiantes inscritos.
+ * <p>
+ * El horario se guarda en {@link #inicio} y {@link #fin}: arreglos de 5 posiciones
+ * (lunes a viernes) con la hora de entrada y de salida de cada día; el valor {@code -1}
+ * indica que ese día no hay clase.
+ */
 @Entity
 @Table(name = "materia")
 public class Materia {
 
+	/**
+	 * Identificador autogenerado por la base de datos.
+	 */
 	private @Id @GeneratedValue(strategy = GenerationType.IDENTITY) long id;
 	
+	/**
+	 * Hora de inicio de la clase por día, de lunes a viernes. {@code -1} = no hay clase ese día.
+	 */
 	private int [] inicio;
+	/**
+	 * Hora de fin de la clase por día, de lunes a viernes. {@code -1} = no hay clase ese día.
+	 */
 	private int [] fin;
 	
+	/**
+	 * Nombre de la materia (igual para todos sus grupos).
+	 */
 	private String nombreMateria;
 	
+	/**
+	 * Carrera a la que pertenece la materia.
+	 */
 	@Enumerated(EnumType.STRING)
 	private Carrera carrera;
 	
+	/**
+	 * Semestre en el que se ofrece (de 1 a 10).
+	 */
 	private short semestre;
 	
+	/**
+	 * Número de grupo. Por defecto es 1 y no puede ser nulo.
+	 */
 	@Column(nullable = false)
 	private int grupo = 1;
 	
+	/**
+	 * Profesor que dicta el grupo. Puede ser {@code null} mientras no se asigne uno
+	 * (la columna es {@code profesor_id}).
+	 */
 	@ManyToOne
 	@JoinColumn(name = "profesor_id")
 	private Profesor profesorAsignado;
 	
+	/**
+	 * Estudiantes inscritos. Esta clase es la dueña de la relación muchos a muchos y
+	 * administra la tabla intermedia {@code materia_estudiante}. Se ignora al serializar a JSON
+	 * para evitar referencias circulares.
+	 */
 	@JsonIgnore
 	@ManyToMany
 	@JoinTable(name = "materia_estudiante",

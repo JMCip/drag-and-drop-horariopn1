@@ -1,3 +1,6 @@
+/**
+ * Carreras disponibles. Los valores deben coincidir exactamente con el enum `Carrera` del back.
+ */
 export enum Carrera {
   ING_SISTEMAS = 'ING_SISTEMAS',
   ING_INDUSTRIAL = 'ING_INDUSTRIAL',
@@ -10,6 +13,9 @@ export enum Carrera {
   FISICA = 'FISICA'
 }
 
+/**
+ * Nombre legible de cada carrera, para mostrar en pantalla en lugar del código.
+ */
 export const ETIQUETAS_CARRERA: Record<Carrera, string> = {
   [Carrera.ING_SISTEMAS]: 'Ingeniería de Sistemas',
   [Carrera.ING_INDUSTRIAL]: 'Ingeniería Industrial',

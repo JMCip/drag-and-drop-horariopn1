@@ -10,13 +10,29 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.Table;
 
+/**
+ * Entidad base de todos los usuarios del sistema (tabla {@code usuario}).
+ * <p>
+ * Usa herencia {@code JOINED}: los datos comunes (id, correo y contraseña) están en esta tabla
+ * y cada subclase ({@link Admin}, {@link Profesor}, {@link Estudiante}) guarda sus datos propios
+ * en su propia tabla, enlazada por el mismo id. Es abstracta porque nunca existe un "usuario" genérico.
+ */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "usuario")
 public abstract class Usuario {
 
+	/**
+	 * Identificador autogenerado por la base de datos.
+	 */
 	private @Id @GeneratedValue(strategy = GenerationType.IDENTITY) long id;
+	/**
+	 * Correo del usuario. Es único en todo el sistema y se usa como nombre de usuario para iniciar sesión.
+	 */
 	private String correo;
+	/**
+	 * Contraseña cifrada con BCrypt. Nunca se guarda en texto plano.
+	 */
 	private String contrasenia;
 	
 	public Usuario() {

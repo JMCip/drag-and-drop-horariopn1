@@ -16,6 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 import co.edu.unbosque.sistemahorario.dto.ProfesorDTO;
 import co.edu.unbosque.sistemahorario.service.ProfesorService;
 
+/**
+ * Controlador REST de profesores ({@code /profesor}).
+ * <p>
+ * Listar profesores lo puede hacer cualquier usuario autenticado; crear, actualizar y
+ * eliminar es exclusivo de ADMIN (ver {@code SecurityConfig}).
+ */
 @RestController
 @RequestMapping("/profesor")
 public class ProfesorController {
@@ -29,6 +35,15 @@ public class ProfesorController {
 	}
 	
 
+	/**
+	 * Crea un profesor.
+	 *
+	 * @param nombre      nombre completo
+	 * @param contrasenia contraseña en texto plano; se guarda cifrada con BCrypt
+	 * @param correo      correo institucional (único en todo el sistema)
+	 * @return 201 si se creó; 406 si el correo o la contraseña tienen formato inválido;
+	 *         400 si el nombre es inválido o el correo ya existe; 500 en cualquier otro caso
+	 */
 	@PostMapping("/crear")
 	public ResponseEntity<String> crearProfesor(@RequestParam String nombre, @RequestParam String contrasenia, @RequestParam String correo) {
 		
@@ -52,6 +67,11 @@ public class ProfesorController {
 	}
 	
 	
+	/**
+	 * Lista todos los profesores con los ids de las materias que dictan.
+	 *
+	 * @return 200 con la lista de {@link ProfesorDTO}
+	 */
 	@GetMapping("/mostrartodo")
 	public ResponseEntity<List<ProfesorDTO>> obtenertodo(){
 		List<ProfesorDTO> listaProfesor = profServ.getAll();
@@ -60,6 +80,12 @@ public class ProfesorController {
 	}
 	
 	
+	/**
+	 * Elimina un profesor. Sus materias se conservan y quedan sin profesor asignado.
+	 *
+	 * @param id identificador del profesor
+	 * @return 200 si se eliminó; 404 si no existe; 500 en cualquier otro caso
+	 */
 	@DeleteMapping("/eliminar")
 	public ResponseEntity<String> eliminarProfesor(@RequestParam Long id){
 		int status = profServ.deleteById(id);
@@ -74,6 +100,17 @@ public class ProfesorController {
 	
 	
 	
+	/**
+	 * Actualiza los datos de un profesor.
+	 *
+	 * @param nombre      nuevo nombre
+	 * @param contrasenia nueva contraseña; si no se envía se conserva la actual
+	 * @param correo      nuevo correo
+	 * @param id          identificador del profesor a modificar
+	 * @return 200 si se actualizó; 406 si el formato del correo o la contraseña es inválido;
+	 *         400 si el nombre es inválido o el correo ya está en uso; 404 si no existe;
+	 *         500 en cualquier otro caso
+	 */
 	@PutMapping("/actualizar")
 	public ResponseEntity<String> actualizarProfesor(@RequestParam String nombre, @RequestParam(required = false) String contrasenia, @RequestParam String correo, @RequestParam Long id) {
 		
@@ -100,6 +137,18 @@ public class ProfesorController {
 		}
 	}
 	
+	/**
+	 * Valida un correo y una contraseña de profesor sin generar token.
+	 * <p>
+	 * Es un endpoint heredado: el inicio de sesión real es {@code POST /api/auth/login}.
+	 * Los parámetros {@code nombre} e {@code id} no se usan en la validación.
+	 *
+	 * @param nombre      no se usa
+	 * @param contrasenia contraseña en texto plano
+	 * @param correo      correo del profesor
+	 * @param id          no se usa
+	 * @return 200 si son correctos; 400 si el formato del correo es inválido; 401 si no coinciden
+	 */
 	@PostMapping("/iniciarsesion")
 	public ResponseEntity<String> validarSesion(@RequestParam String nombre, @RequestParam String contrasenia, @RequestParam String correo, @RequestParam Long id){
 		int status = profServ.validarInicioSesion(correo, contrasenia);

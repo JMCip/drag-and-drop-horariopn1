@@ -3,6 +3,9 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { MateriaService } from '../../services/materia.service';
 
+/**
+ * Pestaña "Mi horario" del profesor: lista los grupos que dicta con su horario.
+ */
 @Component({
   selector: 'app-cronograma-profesor',
   standalone: true,
@@ -15,8 +18,14 @@ export class CronogramaProfesor implements OnInit {
   private materiaService = inject(MateriaService);
   private cdr = inject(ChangeDetectorRef);
 
+  /**
+   * Clases del profesor: nombre del grupo y su horario como texto.
+   */
   clasesAsignadas: { materia: string; franja: string }[] = [];
 
+  /**
+   * Carga las materias y se queda con las que tienen asignado al profesor que inició sesión.
+   */
   ngOnInit(): void {
     const idProfesor = this.authService.obtenerUsuarioActual().id;
     this.materiaService.getAll().subscribe(materias => {

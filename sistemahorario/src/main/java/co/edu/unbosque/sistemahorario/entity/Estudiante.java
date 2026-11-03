@@ -13,16 +13,30 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 
+/**
+ * Estudiante (tabla {@code estudiante}). Arma su horario inscribiéndose en grupos de materias.
+ */
 @Entity
 @Table(name = "estudiante")
 public class Estudiante extends Usuario{
 	
+	/**
+	 * Materias en las que está inscrito. Es el lado inverso de la relación muchos a muchos:
+	 * la tabla intermedia {@code materia_estudiante} la administra {@link Materia}.
+	 * Se ignora al serializar a JSON para evitar referencias circulares.
+	 */
 	@JsonIgnore
 	@ManyToMany(mappedBy = "listaEstudiantes")
 	private List<Materia> listaMateriasInscritas = new ArrayList<>();
 	
+	/**
+	 * Nombre completo del estudiante.
+	 */
 	private String nombre;
 	
+	/**
+	 * Carrera que cursa. Se guarda como texto (por ejemplo {@code ING_SISTEMAS}) y no como número.
+	 */
 	@Enumerated(EnumType.STRING)
 	private Carrera carrera;
 	

@@ -20,6 +20,13 @@ import co.edu.unbosque.sistemahorario.util.exceptions.InvalidNameFormatException
 import co.edu.unbosque.sistemahorario.util.exceptions.InvalidPasswordException;
 import co.edu.unbosque.sistemahorario.util.exceptions.LanzadorDeExcepcion;
 
+/**
+ * Lógica de negocio de los estudiantes.
+ * <p>
+ * Valida correo, contraseña y nombre; garantiza que el correo sea único en todo el sistema
+ * y cifra la contraseña con BCrypt. Es {@code @Transactional} para que los cambios sobre las
+ * relaciones con las materias se guarden de forma consistente.
+ */
 @Service
 @Transactional
 public class EstudianteService implements CRUDOPeration<EstudianteDTO>{
@@ -36,6 +43,12 @@ public class EstudianteService implements CRUDOPeration<EstudianteDTO>{
 	@Autowired
 	private PasswordEncoder encoder;
 
+	/**
+	 * Crea un estudiante.
+	 *
+	 * @param data correo, contraseña, nombre y carrera
+	 * @return 0 si se creó; 1 correo inválido; 2 contraseña débil; 3 nombre inválido; 4 correo ya existente
+	 */
 	@Override
 	public int create(EstudianteDTO data) {
 		try {
@@ -68,6 +81,11 @@ public class EstudianteService implements CRUDOPeration<EstudianteDTO>{
 		return 0;
 	}
 
+	/**
+	 * Lista todos los estudiantes, con los ids de sus materias inscritas.
+	 *
+	 * @return lista de {@link EstudianteDTO}
+	 */
 	@Override
 	public List<EstudianteDTO> getAll() {
 		List<Estudiante> entityList = (List<Estudiante>) estRepo.findAll();
@@ -80,6 +98,13 @@ public class EstudianteService implements CRUDOPeration<EstudianteDTO>{
 		return dtoList;
 	}
 
+	/**
+	 * Elimina un estudiante. Como {@code Materia} es la dueña de la relación, primero se
+	 * le saca de todas sus materias y luego se borra.
+	 *
+	 * @param id identificador del estudiante
+	 * @return 0 si se eliminó; 1 si no existe
+	 */
 	@Override
 	public int deleteById(Long id) {
 		Optional<Estudiante> find = estRepo.findById(id);
@@ -94,6 +119,16 @@ public class EstudianteService implements CRUDOPeration<EstudianteDTO>{
 		return 1;
 	}
 
+	/**
+	 * Actualiza nombre, carrera, correo y, si se envía, la contraseña de un estudiante.
+	 * Si la contraseña llega vacía se conserva la actual.
+	 *
+	 * @param id   identificador del estudiante
+	 * @param data nuevos datos
+	 * @return 0 si se actualizó; 1 correo inválido; 2 contraseña débil; 3 nombre inválido;
+	 *         4 el correo ya lo usa un profesor o administrador; 5 el correo ya lo usa otro estudiante;
+	 *         6 no se encontró el estudiante
+	 */
 	@Override
 	public int updateById(Long id, EstudianteDTO data) {
 		Optional<Estudiante> find = estRepo.findById(id);
@@ -145,16 +180,30 @@ public class EstudianteService implements CRUDOPeration<EstudianteDTO>{
 		return 6;
 	}
 
+	/**
+	 * @return cantidad de estudiantes registrados
+	 */
 	@Override
 	public long count() {
 		return estRepo.count();
 	}
 
+	/**
+	 * @param id identificador a buscar
+	 * @return {@code true} si existe un estudiante con ese id
+	 */
 	@Override
 	public boolean exist(Long id) {
 		return estRepo.existsById(id);
 	}
 	
+	/**
+	 * Convierte un estudiante a DTO. La contraseña no se incluye y las materias se
+	 * reducen a sus ids.
+	 *
+	 * @param entity estudiante a convertir
+	 * @return el DTO correspondiente
+	 */
 	private EstudianteDTO toDTO(Estudiante entity) {
 		List<Long> idsMaterias = new ArrayList<>();
 		entity.getListaMateriasInscritas().forEach((materia) -> idsMaterias.add(materia.getId()));
@@ -165,6 +214,14 @@ public class EstudianteService implements CRUDOPeration<EstudianteDTO>{
 		return dto;
 	}
 	
+	/**
+	 * Comprueba un correo y una contraseña contra los estudiantes guardados.
+	 * Es la versión heredada del login; el flujo actual usa JWT ({@code AuthController}).
+	 *
+	 * @param correo correo ingresado
+	 * @param pw     contraseña en texto plano (se compara contra el hash BCrypt)
+	 * @return 0 si son correctos; 1 si el formato del correo es inválido; 2 si no coinciden
+	 */
 	public int validarInicioSesion(String correo, String pw) {
 	    try {
 	        LanzadorDeExcepcion.verificarEmail(correo);
