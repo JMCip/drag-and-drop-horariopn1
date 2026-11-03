@@ -6,6 +6,10 @@ import java.util.Objects;
 
 import co.edu.unbosque.sistemahorario.util.enums.Carrera;
 
+/**
+ * Objeto de transferencia de un estudiante. En lugar de las materias completas lleva solo sus ids
+ * ({@code listaIdMateriasInscritas}), lo que evita enviar objetos anidados y referencias circulares.
+ */
 public class EstudianteDTO extends UsuarioDTO{
 	
 	private List<Long> listaIdMateriasInscritas = new ArrayList<>();

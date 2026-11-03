@@ -18,6 +18,12 @@ import co.edu.unbosque.sistemahorario.util.exceptions.InvalidEmailFormatExceptio
 import co.edu.unbosque.sistemahorario.util.exceptions.InvalidPasswordException;
 import co.edu.unbosque.sistemahorario.util.exceptions.LanzadorDeExcepcion;
 
+/**
+ * Lógica de negocio de los administradores.
+ * <p>
+ * Valida el formato de los datos, garantiza que el correo sea único entre administradores,
+ * profesores y estudiantes, y cifra las contraseñas con BCrypt antes de guardarlas.
+ */
 @Service
 public class AdminService implements CRUDOPeration<AdminDTO>{
 	
@@ -36,6 +42,13 @@ public class AdminService implements CRUDOPeration<AdminDTO>{
 	@Autowired
 	private PasswordEncoder encoder;
 
+	/**
+	 * Crea un administrador.
+	 *
+	 * @param data correo y contraseña del nuevo administrador
+	 * @return 0 si se creó; 1 si el formato del correo es inválido; 2 si la contraseña es débil;
+	 *         3 si el correo ya existe
+	 */
 	@Override
 	public int create(AdminDTO data) {
 		try {
@@ -61,6 +74,11 @@ public class AdminService implements CRUDOPeration<AdminDTO>{
 		return 0;
 	}
 
+	/**
+	 * Lista todos los administradores. El DTO incluye la contraseña en su forma cifrada (hash BCrypt).
+	 *
+	 * @return lista de {@link AdminDTO}
+	 */
 	@Override
 	public List<AdminDTO> getAll() {
 		List<Admin> entityList = (List<Admin>) admRepo.findAll();
@@ -74,6 +92,12 @@ public class AdminService implements CRUDOPeration<AdminDTO>{
 		return dtoList;
 	}
 
+	/**
+	 * Elimina un administrador.
+	 *
+	 * @param id identificador del administrador
+	 * @return 0 si se eliminó; 1 si no existe
+	 */
 	@Override
 	public int deleteById(Long id) {
 		Optional<Admin> find = admRepo.findById(id);
@@ -84,6 +108,15 @@ public class AdminService implements CRUDOPeration<AdminDTO>{
 		return 1;
 	}
 
+	/**
+	 * Actualiza el correo y, si se envía, la contraseña de un administrador.
+	 * Si la contraseña llega vacía se conserva la actual.
+	 *
+	 * @param id   identificador del administrador
+	 * @param data nuevos datos
+	 * @return 0 si se actualizó; 1 correo inválido; 2 contraseña débil; 3 el correo ya lo usa un
+	 *         profesor o un estudiante; 4 no se encontró el administrador; 5 el correo ya lo usa otro administrador
+	 */
 	@Override
 	public int updateById(Long id, AdminDTO data) {
 		Optional<Admin> find = admRepo.findById(id);
@@ -125,16 +158,31 @@ public class AdminService implements CRUDOPeration<AdminDTO>{
 		return 4;
 	}
 
+	/**
+	 * @return cantidad de administradores registrados
+	 */
 	@Override
 	public long count() {
 		return admRepo.count();
 	}
 
+	/**
+	 * @param id identificador a buscar
+	 * @return {@code true} si existe un administrador con ese id
+	 */
 	@Override
 	public boolean exist(Long id) {
 		return admRepo.existsById(id);
 	}
 	
+	/**
+	 * Comprueba un correo y una contraseña contra los administradores guardados.
+	 * Es la versión heredada del login; el flujo actual usa JWT ({@code AuthController}).
+	 *
+	 * @param correo correo ingresado
+	 * @param pw     contraseña en texto plano (se compara contra el hash BCrypt)
+	 * @return 0 si son correctos; 1 si el formato del correo es inválido; 2 si no coinciden
+	 */
 	public int validarInicioSesion(String correo, String pw) {
 	    try {
 	        LanzadorDeExcepcion.verificarEmail(correo);

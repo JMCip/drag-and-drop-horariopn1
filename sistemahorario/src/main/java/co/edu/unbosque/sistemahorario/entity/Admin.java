@@ -3,6 +3,10 @@ package co.edu.unbosque.sistemahorario.entity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
+/**
+ * Administrador (secretaría académica). Tiene los mismos datos que {@link Usuario}
+ * y es el único rol que puede crear, editar y borrar usuarios y materias, asignar profesores y reubicar estudiantes.
+ */
 @Entity
 @Table(name = "admin")
 public class Admin extends Usuario{

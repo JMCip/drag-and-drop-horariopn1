@@ -4,6 +4,10 @@ import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * Objeto de transferencia con los datos comunes de un usuario: id, correo y contraseña.
+ * Es la clase base de {@link AdminDTO}, {@link ProfesorDTO} y {@link EstudianteDTO}.
+ */
 public class UsuarioDTO {
 	
 	private long id;

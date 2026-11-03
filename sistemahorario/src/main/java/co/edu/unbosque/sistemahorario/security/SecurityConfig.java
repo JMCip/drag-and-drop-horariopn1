@@ -22,6 +22,13 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 
 
 
+/**
+ * Configuración de seguridad de la API.
+ * <p>
+ * Define qué rutas son públicas y cuáles exigen un rol, desactiva las sesiones (la autenticación
+ * es solo por token JWT) y registra el filtro {@link JwtRequestFilter}. También declara los
+ * beans de cifrado de contraseñas (BCrypt) y de autenticación.
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -33,6 +40,21 @@ public class SecurityConfig {
     @Autowired
     private UserDetailsService userDetailsService;
 
+    /**
+     * Arma la cadena de filtros de seguridad.
+     * <ul>
+     * <li>Públicas: login, Swagger y {@code /error}.</li>
+     * <li>Cualquier usuario autenticado: listar materias y profesores.</li>
+     * <li>ADMIN y PROFESOR: listar estudiantes.</li>
+     * <li>ADMIN y ESTUDIANTE: inscribir y desinscribir (el estudiante solo sobre sí mismo, lo valida {@code MateriaController}).</li>
+     * <li>Solo ADMIN: el resto de {@code /admin}, {@code /estudiante}, {@code /profesor} y {@code /materia}.</li>
+     * </ul>
+     * Sin token o con token vencido se responde 401. CSRF está desactivado porque no hay sesiones.
+     *
+     * @param http constructor de la configuración HTTP
+     * @return la cadena de filtros ya construida
+     * @throws Exception si la configuración falla
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -64,6 +86,12 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * Proveedor que autentica buscando al usuario con {@link UserDetailsService} y
+     * comparando la contraseña con BCrypt.
+     *
+     * @return el proveedor de autenticación
+     */
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -72,11 +100,23 @@ public class SecurityConfig {
         return authProvider;
     }
 
+    /**
+     * Codificador de contraseñas. BCrypt guarda un hash con sal, por lo que no se puede revertir.
+     *
+     * @return el codificador BCrypt
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * Administrador de autenticación que usa {@code AuthController} para validar el login.
+     *
+     * @param config configuración de autenticación de Spring
+     * @return el administrador de autenticación
+     * @throws Exception si no se puede obtener
+     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
