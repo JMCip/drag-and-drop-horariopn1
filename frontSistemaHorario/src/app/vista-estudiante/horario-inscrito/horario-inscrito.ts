@@ -7,6 +7,10 @@ import { AuthService } from '../../services/auth.service';
 const HORAS_GRILLA = Array.from({ length: 15 }, (_, i) => i + 7);
 const COLORES_PDF: [number, number, number][] = [[214, 234, 248], [213, 245, 227], [252, 243, 207], [250, 219, 216], [232, 218, 239], [209, 242, 235]];
 
+/**
+ * Pestaña "Mi horario inscrito": lista las secciones en las que el estudiante ya está inscrito
+ * y permite descargar el horario como archivo JSON.
+ */
 @Component({
   selector: 'app-horario-inscrito',
   standalone: true,
@@ -15,6 +19,15 @@ const COLORES_PDF: [number, number, number][] = [[214, 234, 248], [213, 245, 227
   styleUrl: './horario-inscrito.css'
 })
 export class HorarioInscrito {
+  /**
+   * Descarga el horario inscrito como el archivo `mi_horario_el_bosque.json`.
+   */
+  /**
+   * Se emite cuando el estudiante pide volver a la pestaña de armar horario.
+   */
+  /**
+   * Secciones inscritas que se muestran.
+   */
   @Input() horarioInscrito: SeccionModel[] = [];
   @Output() irAArmar = new EventEmitter<void>();
 
@@ -100,6 +113,12 @@ Grupo ${bloque.s.grupo}`, rowSpan: duracion, styles: { fillColor: color.get(bloq
     return h < 10 ? `0${h}` : `${h}`;
   }
 
+  /**
+   * Texto de una franja, por ejemplo `Lun 08–10`.
+   *
+   * @param f franja a mostrar
+   * @returns la franja como texto
+   */
   formatearFranja(f: FranjaHoraria): string {
     const hi = f.horaInicio < 10 ? `0${f.horaInicio}` : f.horaInicio;
     const hf = f.horaFin < 10 ? `0${f.horaFin}` : f.horaFin;

@@ -20,6 +20,12 @@ import co.edu.unbosque.sistemahorario.util.exceptions.InvalidNameFormatException
 import co.edu.unbosque.sistemahorario.util.exceptions.InvalidPasswordException;
 import co.edu.unbosque.sistemahorario.util.exceptions.LanzadorDeExcepcion;
 
+/**
+ * Lógica de negocio de los profesores.
+ * <p>
+ * Valida correo, contraseña y nombre; garantiza que el correo sea único en todo el sistema
+ * y cifra la contraseña con BCrypt.
+ */
 @Service
 @Transactional
 public class ProfesorService implements CRUDOPeration<ProfesorDTO>{
@@ -36,6 +42,12 @@ public class ProfesorService implements CRUDOPeration<ProfesorDTO>{
 	@Autowired
 	private PasswordEncoder encoder;
 
+	/**
+	 * Crea un profesor.
+	 *
+	 * @param data correo, contraseña y nombre
+	 * @return 0 si se creó; 1 correo inválido; 2 contraseña débil; 3 nombre inválido; 4 correo ya existente
+	 */
 	@Override
 	public int create(ProfesorDTO data) {
 		
@@ -67,6 +79,11 @@ public class ProfesorService implements CRUDOPeration<ProfesorDTO>{
 		return 0;
 	}
 
+	/**
+	 * Lista todos los profesores, con los ids de las materias que dictan.
+	 *
+	 * @return lista de {@link ProfesorDTO}
+	 */
 	@Override
 	public List<ProfesorDTO> getAll() {
 		List<Profesor> entityList = (List<Profesor>) profRepo.findAll();
@@ -78,6 +95,12 @@ public class ProfesorService implements CRUDOPeration<ProfesorDTO>{
 		return dtoList;
 	}
 
+	/**
+	 * Elimina un profesor. Sus materias se conservan y quedan sin profesor asignado.
+	 *
+	 * @param id identificador del profesor
+	 * @return 0 si se eliminó; 1 si no existe
+	 */
 	@Override
 	public int deleteById(Long id) {
 		Optional<Profesor> find = profRepo.findById(id);
@@ -94,6 +117,16 @@ public class ProfesorService implements CRUDOPeration<ProfesorDTO>{
 		return 1;
 	}
 
+	/**
+	 * Actualiza nombre, correo y, si se envía, la contraseña de un profesor.
+	 * Si la contraseña llega vacía se conserva la actual.
+	 *
+	 * @param id   identificador del profesor
+	 * @param data nuevos datos
+	 * @return 0 si se actualizó; 1 correo inválido; 2 contraseña débil; 3 nombre inválido;
+	 *         4 el correo ya lo usa un estudiante o administrador; 5 el correo ya lo usa otro profesor;
+	 *         6 no se encontró el profesor
+	 */
 	@Override
 	public int updateById(Long id, ProfesorDTO data) {
 		Optional<Profesor> find = profRepo.findById(id);
@@ -144,6 +177,13 @@ public class ProfesorService implements CRUDOPeration<ProfesorDTO>{
 		return 6;
 	}
 	
+	/**
+	 * Convierte un profesor a DTO. La contraseña no se incluye y las materias se
+	 * reducen a sus ids.
+	 *
+	 * @param entity profesor a convertir
+	 * @return el DTO correspondiente
+	 */
 	private ProfesorDTO toDTO(Profesor entity) {
 		List<Long> idsMaterias = new ArrayList<>();
 		entity.getListaMaterias().forEach((materia) -> idsMaterias.add(materia.getId()));
@@ -153,6 +193,14 @@ public class ProfesorService implements CRUDOPeration<ProfesorDTO>{
 		return dto;
 	}
 	
+	/**
+	 * Comprueba un correo y una contraseña contra los profesores guardados.
+	 * Es la versión heredada del login; el flujo actual usa JWT ({@code AuthController}).
+	 *
+	 * @param correo correo ingresado
+	 * @param pw     contraseña en texto plano (se compara contra el hash BCrypt)
+	 * @return 0 si son correctos; 1 si el formato del correo es inválido; 2 si no coinciden
+	 */
 	public int validarInicioSesion(String correo, String pw) {
 	    try {
 	        LanzadorDeExcepcion.verificarEmail(correo);
@@ -170,11 +218,18 @@ public class ProfesorService implements CRUDOPeration<ProfesorDTO>{
 	    return 2;
 	}
 
+	/**
+	 * @return cantidad de profesores registrados
+	 */
 	@Override
 	public long count() {
 		return profRepo.count();
 	}
 
+	/**
+	 * @param id identificador a buscar
+	 * @return {@code true} si existe un profesor con ese id
+	 */
 	@Override
 	public boolean exist(Long id) {
 		return profRepo.existsById(id) ? true : false;

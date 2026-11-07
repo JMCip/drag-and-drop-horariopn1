@@ -1,5 +1,8 @@
 package co.edu.unbosque.sistemahorario.dto;
 
+/**
+ * Objeto de transferencia de un administrador (no agrega campos a {@link UsuarioDTO}).
+ */
 public class AdminDTO extends UsuarioDTO {
 	public AdminDTO() {
 		super();

@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Objeto de transferencia de un profesor. En lugar de las materias completas lleva solo sus ids
+ * ({@code listaIdMaterias}), lo que evita enviar objetos anidados y referencias circulares.
+ */
 public class ProfesorDTO extends UsuarioDTO{
 	
 	private List<Long> listaIdMaterias = new ArrayList<>();

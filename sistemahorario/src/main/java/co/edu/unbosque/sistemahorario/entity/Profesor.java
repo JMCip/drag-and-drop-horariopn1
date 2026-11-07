@@ -12,15 +12,25 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
+/**
+ * Profesor (tabla {@code profesor}). Puede dictar varias materias, siempre que sus horarios no se crucen.
+ */
 @Entity
 @Table(name = "profesor")
 public class Profesor extends Usuario{
 	
+	/**
+	 * Materias que dicta. Es el lado inverso de la relación: la columna {@code profesor_id} vive en {@link Materia}.
+	 * Se ignora al serializar a JSON para evitar referencias circulares.
+	 */
 	@JsonIgnore
 	@BatchSize(size = 100)
 	@OneToMany(mappedBy = "profesorAsignado")
 	private List<Materia> listaMaterias = new ArrayList<>();
 
+	/**
+	 * Nombre completo del profesor.
+	 */
 	private String nombre;
 	
 	public Profesor() {

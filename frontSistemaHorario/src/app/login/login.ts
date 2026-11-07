@@ -5,6 +5,11 @@ import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { Role } from '../models/role.enum';
 
+/**
+ * Pantalla de inicio de sesión (`/login`).
+ * Envía el correo y la contraseña al back y, según el rol que responde, lleva al usuario a su vista:
+ * ADMIN a `/admin`, PROFESOR a `/profesor` y cualquier otro a `/estudiante`.
+ */
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -17,12 +22,31 @@ export class Login {
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
+  /**
+   * Correo escrito en el formulario.
+   */
   correo = '';
+  /**
+   * Contraseña escrita en el formulario.
+   */
   contrasena = '';
+  /**
+   * Si es `true`, la contraseña se muestra en texto visible.
+   */
   mostrarPass = false;
+  /**
+   * Indica que hay un inicio de sesión en curso (para deshabilitar el botón).
+   */
   cargando = false;
+  /**
+   * Mensaje de error que se muestra bajo el formulario; vacío si no hay error.
+   */
   mensajeError = '';
 
+  /**
+   * Valida que los campos no estén vacíos y llama al login. Si el back responde bien, navega a la vista del rol;
+   * si no, muestra "No se pudo conectar con el servidor" (sin respuesta) o "Correo o contraseña incorrectos".
+   */
   iniciarSesion(): void {
     this.mensajeError = '';
     if (!this.correo.trim() || !this.contrasena.trim()) {

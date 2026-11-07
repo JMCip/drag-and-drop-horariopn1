@@ -20,14 +20,33 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
-// Un grupo de una asignatura del catalogo, con su horario y profesor
+/**
+ * Un <b>grupo</b> de una materia (tabla {@code materia}).
+ * <p>
+ * No representa la asignatura en abstracto sino un grupo concreto: la pareja
+ * ({@code nombreMateria}, {@code grupo}) es única. Cada grupo tiene su propio horario,
+ * su profesor y sus estudiantes inscritos.
+ * <p>
+ * El horario se guarda en {@link #inicio} y {@link #fin}: arreglos de 5 posiciones
+ * (lunes a viernes) con la hora de entrada y de salida de cada día; el valor {@code -1}
+ * indica que ese día no hay clase.
+ */
 @Entity
 @Table(name = "materia")
 public class Materia {
 
+	/**
+	 * Identificador autogenerado por la base de datos.
+	 */
 	private @Id @GeneratedValue(strategy = GenerationType.IDENTITY) long id;
-
+	
+	/**
+	 * Hora de inicio de la clase por día, de lunes a viernes. {@code -1} = no hay clase ese día.
+	 */
 	private int [] inicio;
+	/**
+	 * Hora de fin de la clase por día, de lunes a viernes. {@code -1} = no hay clase ese día.
+	 */
 	private int [] fin;
 
 	@ManyToOne(optional = false)

@@ -7,6 +7,13 @@ import java.util.Objects;
 
 import co.edu.unbosque.sistemahorario.util.enums.Carrera;
 
+/**
+ * Objeto de transferencia de una materia (un grupo concreto).
+ * <p>
+ * El profesor y los estudiantes se envían solo como ids ({@code idProfesorAsignado} y
+ * {@code listaIdEstudiantes}). El horario va en {@code inicio} y {@code fin}: 5 valores,
+ * de lunes a viernes, con {@code -1} cuando ese día no hay clase.
+ */
 public class MateriaDTO {
 
 	private long id;

@@ -10,6 +10,9 @@ import { AsignaturaService } from '../../services/asignatura.service';
 import { MateriaService } from '../../services/materia.service';
 import { ProfesorService } from '../../services/profesor.service';
 
+/**
+ * Pestaña "Materias" del administrador: crear materias (grupos) con su horario, listarlas y asignarles profesor.
+ */
 @Component({
   selector: 'app-materias-admin',
   standalone: true,
@@ -23,13 +26,29 @@ export class MateriasAdmin implements OnInit {
   private profesorService = inject(ProfesorService);
   private cdr = inject(ChangeDetectorRef);
 
+  /**
+   * Carreras para el desplegable (valor y nombre legible).
+   */
   carreras = Object.values(Carrera).map(valor => ({ valor, etiqueta: ETIQUETAS_CARRERA[valor] }));
+  /**
+   * Semestres disponibles: del 1 al 10.
+   */
+  semestres = Array.from({ length: 10 }, (_, i) => i + 1);
+  /**
+   * Horas de inicio permitidas. Se omite la 13 por la hora de almuerzo.
+   */
   horasInicio = [7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21];
+  /**
+   * Horas de fin permitidas. Se omite la 14 porque una clase no puede cruzar el almuerzo (13 a 14).
+   */
   horasFin = [8, 9, 10, 11, 12, 13, 15, 16, 17, 18, 19, 20, 21, 22];
 
   carrera = Carrera.ING_SISTEMAS;
   idAsignatura: number | null = null;
   grupo = 1;
+  /**
+   * Horario de la materia nueva: una fila por día con hora de inicio y de fin (o vacío si ese día no hay clase).
+   */
   horario = this.horarioVacio();
   // Grupo que se esta editando; null cuando el formulario crea uno nuevo
   editando: MateriaDTO | null = null;
@@ -38,13 +57,31 @@ export class MateriasAdmin implements OnInit {
   cargandoCatalogo = true;
   // Se recalcula solo al cambiar la carrera: un getter con objetos nuevos rompe el select
   opcionesAsignatura: { id: number; etiqueta: string }[] = [];
+  /**
+   * Materias existentes.
+   */
   materias: MateriaDTO[] = [];
+  /**
+   * Profesores disponibles para asignar.
+   */
   profesores: ProfesorDTO[] = [];
+  /**
+   * Profesor elegido en el desplegable de cada materia, indexado por id de materia.
+   */
   profesorElegido: Record<number, number | null> = {};
 
+  /**
+   * Mensaje de éxito devuelto por el back.
+   */
   mensajeExito = '';
+  /**
+   * Mensaje de error a mostrar.
+   */
   mensajeError = '';
 
+  /**
+   * Al abrir la pestaña carga materias y profesores.
+   */
   ngOnInit(): void {
     this.asignaturaService.getAll().subscribe({
       next: (asignaturas) => {
@@ -75,10 +112,18 @@ export class MateriasAdmin implements OnInit {
     this.opcionesAsignatura = this.calcularOpciones();
   }
 
+  /**
+   * @param materia materia a consultar
+   * @returns el nombre del profesor asignado, o `undefined` si no tiene
+   */
   nombreDocente(materia: MateriaDTO): string | undefined {
     return this.profesores.find(p => p.id === materia.idProfesorAsignado)?.nombre;
   }
 
+  /**
+   * @param materia materia a consultar
+   * @returns el horario como texto legible
+   */
   horarioDe(materia: MateriaDTO): string {
     return this.materiaService.formatearHorario(materia);
   }
@@ -125,6 +170,10 @@ export class MateriasAdmin implements OnInit {
     });
   }
 
+  /**
+   * Valida el formulario (nombre, y inicio y fin completos en cada día con clase, al menos un día) y crea
+   * la materia. Si sale bien, limpia el formulario y recarga la lista; si no, muestra el mensaje del back.
+   */
   crearMateria(): void {
     this.limpiarMensajes();
     const diaIncompleto = this.horario.some(h => (h.inicio === null) !== (h.fin === null));
@@ -153,6 +202,11 @@ export class MateriasAdmin implements OnInit {
     });
   }
 
+  /**
+   * Asigna a la materia el profesor elegido en su desplegable. Muestra el mensaje del back.
+   *
+   * @param materia materia a la que se asigna el profesor
+   */
   asignarProfesor(materia: MateriaDTO): void {
     this.limpiarMensajes();
     const idProfesor = this.profesorElegido[materia.id ?? 0];
@@ -182,6 +236,9 @@ export class MateriasAdmin implements OnInit {
     });
   }
 
+  /**
+   * Recarga materias y profesores desde el back.
+   */
   private cargar(): void {
     forkJoin([this.materiaService.getAll(), this.profesorService.getAll()]).subscribe(([materias, profesores]) => {
       this.materias = materias;
@@ -190,15 +247,26 @@ export class MateriasAdmin implements OnInit {
     });
   }
 
+  /**
+   * @returns un horario nuevo con los 5 días sin hora de inicio ni de fin
+   */
   private horarioVacio() {
     return DIAS_MATERIA.map(dia => ({ dia, inicio: null as number | null, fin: null as number | null }));
   }
 
+  /**
+   * Borra los mensajes de éxito y de error.
+   */
   private limpiarMensajes(): void {
     this.mensajeExito = '';
     this.mensajeError = '';
   }
 
+  /**
+   * Muestra el mensaje de error que envió el back, o uno genérico si no hay.
+   *
+   * @param err error HTTP recibido
+   */
   private mostrarError(err: { error?: unknown }): void {
     this.mensajeError = typeof err.error === 'string' && err.error ? err.error : 'No se pudo completar la operación.';
     this.cdr.markForCheck();

@@ -10,6 +10,9 @@ import { EstudianteService } from '../../services/estudiante.service';
 import { MateriaService } from '../../services/materia.service';
 import { ProfesorService } from '../../services/profesor.service';
 
+/**
+ * Pestaña "Panel" del administrador: totales de usuarios y listados de estudiantes, profesores y materias.
+ */
 @Component({
   selector: 'app-dashboard-admin',
   standalone: true,
@@ -24,16 +27,34 @@ export class DashboardAdmin implements OnInit {
   private materiaService = inject(MateriaService);
   private cdr = inject(ChangeDetectorRef);
 
+  /**
+   * Listado que se muestra: estudiantes, profesores o materias.
+   */
   subPestanaListado: 'estudiantes' | 'profesores' | 'materias' = 'estudiantes';
 
+  /**
+   * Estudiantes registrados.
+   */
   estudiantes: EstudianteDTO[] = [];
+  /**
+   * Profesores registrados.
+   */
   profesores: ProfesorDTO[] = [];
+  /**
+   * Materias (grupos) registradas.
+   */
   materias: MateriaDTO[] = [];
+  /**
+   * Cantidad de administradores.
+   */
   totalAdmins = 0;
   semestres = Array.from({ length: 12 }, (_, i) => i + 1);
   semestreEditado: Record<number, number | null> = {};
   mensaje: { exito: boolean; texto: string } | null = null;
 
+  /**
+   * Carga en paralelo estudiantes, profesores, materias y el total de administradores.
+   */
   ngOnInit(): void {
     this.cargar();
   }
@@ -54,6 +75,9 @@ export class DashboardAdmin implements OnInit {
     });
   }
 
+  /**
+   * Total de usuarios del sistema: estudiantes, profesores y administradores.
+   */
   get totalUsuarios(): number {
     return this.estudiantes.length + this.profesores.length + this.totalAdmins;
   }
@@ -108,6 +132,9 @@ export class DashboardAdmin implements OnInit {
     this.cdr.markForCheck();
   }
 
+  /**
+   * Filas del listado activo con tres textos por fila (nombre, segunda línea y detalle), según la sub pestaña elegida.
+   */
   get filas(): { nombre: string; segunda: string; detalle: string }[] {
     if (this.subPestanaListado === 'estudiantes') {
       return this.estudiantes.map(e => ({
