@@ -3,9 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { Carrera, ETIQUETAS_CARRERA } from '../../models/carrera.enum';
-import { DIAS_MATERIA, MateriaDTO } from '../../models/materia.model';
+import { AsignaturaDTO, DIAS_MATERIA, MateriaDTO } from '../../models/materia.model';
 import { FranjaHoraria } from '../../models/seccion.model';
 import { ProfesorDTO } from '../../models/usuario.model';
+import { AsignaturaService } from '../../services/asignatura.service';
 import { MateriaService } from '../../services/materia.service';
 import { ProfesorService } from '../../services/profesor.service';
 
@@ -21,6 +22,7 @@ import { ProfesorService } from '../../services/profesor.service';
 })
 export class MateriasAdmin implements OnInit {
   private materiaService = inject(MateriaService);
+  private asignaturaService = inject(AsignaturaService);
   private profesorService = inject(ProfesorService);
   private cdr = inject(ChangeDetectorRef);
 
@@ -41,27 +43,20 @@ export class MateriasAdmin implements OnInit {
    */
   horasFin = [8, 9, 10, 11, 12, 13, 15, 16, 17, 18, 19, 20, 21, 22];
 
-  /**
-   * Nombre de la materia que se está creando.
-   */
-  nombreMateria = '';
-  /**
-   * Carrera elegida para la materia nueva.
-   */
   carrera = Carrera.ING_SISTEMAS;
-  /**
-   * Semestre elegido para la materia nueva.
-   */
-  semestre = 1;
-  /**
-   * Número de grupo de la materia nueva.
-   */
+  idAsignatura: number | null = null;
   grupo = 1;
   /**
    * Horario de la materia nueva: una fila por día con hora de inicio y de fin (o vacío si ese día no hay clase).
    */
   horario = this.horarioVacio();
+  // Grupo que se esta editando; null cuando el formulario crea uno nuevo
+  editando: MateriaDTO | null = null;
 
+  asignaturas: AsignaturaDTO[] = [];
+  cargandoCatalogo = true;
+  // Se recalcula solo al cambiar la carrera: un getter con objetos nuevos rompe el select
+  opcionesAsignatura: { id: number; etiqueta: string }[] = [];
   /**
    * Materias existentes.
    */
@@ -88,7 +83,33 @@ export class MateriasAdmin implements OnInit {
    * Al abrir la pestaña carga materias y profesores.
    */
   ngOnInit(): void {
+    this.asignaturaService.getAll().subscribe({
+      next: (asignaturas) => {
+        this.asignaturas = asignaturas;
+        this.opcionesAsignatura = this.calcularOpciones();
+        this.cargandoCatalogo = false;
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.cargandoCatalogo = false;
+        this.mostrarError(err);
+      }
+    });
     this.cargar();
+  }
+
+  // Materias del catálogo de la carrera elegida, ordenadas por semestre
+  private calcularOpciones(): { id: number; etiqueta: string }[] {
+    return this.asignaturas
+      .map(a => ({ a, plan: a.planes.find(p => p.carrera === this.carrera) }))
+      .filter(x => x.plan !== undefined)
+      .sort((x, y) => x.plan!.semestre - y.plan!.semestre || x.a.nombre.localeCompare(y.a.nombre))
+      .map(x => ({ id: x.a.id, etiqueta: `${x.plan!.semestre}° · ${x.a.nombre}` }));
+  }
+
+  cambiarCarrera(): void {
+    this.idAsignatura = null;
+    this.opcionesAsignatura = this.calcularOpciones();
   }
 
   /**
@@ -107,6 +128,48 @@ export class MateriasAdmin implements OnInit {
     return this.materiaService.formatearHorario(materia);
   }
 
+  carrerasDe(materia: MateriaDTO): string {
+    return this.materiaService.formatearPlanes(materia.planes);
+  }
+
+  editarGrupo(materia: MateriaDTO): void {
+    this.limpiarMensajes();
+    this.editando = materia;
+    this.carrera = materia.planes.find(p => p.carrera === this.carrera)?.carrera ?? materia.planes[0]?.carrera ?? this.carrera;
+    this.opcionesAsignatura = this.calcularOpciones();
+    this.idAsignatura = materia.idAsignatura;
+    this.grupo = materia.grupo;
+    this.horario = this.horarioVacio();
+    for (const franja of this.materiaService.aFranjas(materia)) {
+      const dia = this.horario.find(h => h.dia === franja.dia);
+      if (dia) {
+        dia.inicio = franja.horaInicio;
+        dia.fin = franja.horaFin;
+      }
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  cancelarEdicion(): void {
+    this.editando = null;
+    this.idAsignatura = null;
+    this.grupo = 1;
+    this.horario = this.horarioVacio();
+    this.limpiarMensajes();
+  }
+
+  quitarProfesor(materia: MateriaDTO): void {
+    this.limpiarMensajes();
+    if (materia.id === undefined || !confirm(`¿Quitar el profesor de ${materia.nombreMateria} (Grupo ${materia.grupo})?`)) return;
+    this.materiaService.quitarProfesor(materia.id).subscribe({
+      next: (mensaje) => {
+        this.mensajeExito = mensaje;
+        this.cargar();
+      },
+      error: (err) => this.mostrarError(err)
+    });
+  }
+
   /**
    * Valida el formulario (nombre, y inicio y fin completos en cada día con clase, al menos un día) y crea
    * la materia. Si sale bien, limpia el formulario y recarga la lista; si no, muestra el mensaje del back.
@@ -118,22 +181,20 @@ export class MateriasAdmin implements OnInit {
       .filter(h => h.inicio !== null && h.fin !== null)
       .map(h => ({ dia: h.dia, horaInicio: h.inicio!, horaFin: h.fin! }));
 
-    if (!this.nombreMateria.trim() || diaIncompleto || franjas.length === 0) {
-      this.mensajeError = 'Escribe el nombre y completa el inicio y el fin de cada día con clase.';
+    if (this.idAsignatura === null || diaIncompleto || franjas.length === 0) {
+      this.mensajeError = 'Elige la materia y completa el inicio y el fin de cada día con clase.';
       return;
     }
 
-    this.materiaService.create({
-      ...this.materiaService.deFranjas(franjas),
-      nombreMateria: this.nombreMateria.trim(),
-      carrera: this.carrera,
-      semestre: this.semestre,
-      grupo: this.grupo,
-      listaIdEstudiantes: []
-    }).subscribe({
+    const datos = { ...this.materiaService.deFranjas(franjas), idAsignatura: this.idAsignatura, grupo: this.grupo };
+    const peticion = this.editando?.id !== undefined
+      ? this.materiaService.updateById(this.editando.id, datos)
+      : this.materiaService.create(datos);
+
+    peticion.subscribe({
       next: (mensaje) => {
         this.mensajeExito = mensaje;
-        this.nombreMateria = '';
+        this.editando = null;
         this.horario = this.horarioVacio();
         this.cargar();
       },
@@ -155,6 +216,18 @@ export class MateriasAdmin implements OnInit {
     }
 
     this.materiaService.asignarProfesor(idProfesor, materia.id).subscribe({
+      next: (mensaje) => {
+        this.mensajeExito = mensaje;
+        this.cargar();
+      },
+      error: (err) => this.mostrarError(err)
+    });
+  }
+
+  eliminarGrupo(materia: MateriaDTO): void {
+    this.limpiarMensajes();
+    if (materia.id === undefined || !confirm(`¿Eliminar ${materia.nombreMateria} (Grupo ${materia.grupo})? Se borrarán también sus inscripciones.`)) return;
+    this.materiaService.deleteById(materia.id).subscribe({
       next: (mensaje) => {
         this.mensajeExito = mensaje;
         this.cargar();

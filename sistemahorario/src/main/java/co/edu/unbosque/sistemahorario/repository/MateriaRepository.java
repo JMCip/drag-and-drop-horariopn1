@@ -10,12 +10,5 @@ import co.edu.unbosque.sistemahorario.entity.Materia;
  */
 public interface MateriaRepository extends CrudRepository<Materia, Long>{
 	
-	/**
-	 * Sirve para evitar grupos duplicados: la pareja nombre + grupo debe ser única.
-	 *
-	 * @param nombre nombre de la materia
-	 * @param grupo  número de grupo
-	 * @return {@code true} si ya existe ese grupo de esa materia
-	 */
-	boolean existsByNombreMateriaAndGrupo(String nombre, int grupo);
+	boolean existsByAsignaturaIdAndGrupo(long idAsignatura, int grupo);
 }

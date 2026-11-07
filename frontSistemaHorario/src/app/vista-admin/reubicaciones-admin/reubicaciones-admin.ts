@@ -68,7 +68,7 @@ export class ReubicacionesAdmin implements OnInit {
   get gruposDestino(): MateriaDTO[] {
     const origen = this.materias.find(m => m.id === this.idOrigen);
     return this.materias.filter(m =>
-      m.nombreMateria === origen?.nombreMateria && m.id !== origen.id
+      m.idAsignatura === origen?.idAsignatura && m.id !== origen.id
     );
   }
 

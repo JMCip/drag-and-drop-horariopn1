@@ -41,6 +41,8 @@ export class RegistroUsuarios {
    * Carrera elegida (solo aplica a estudiantes).
    */
   carreraNueva = Carrera.ING_SISTEMAS;
+  semestreNuevo = 1;
+  semestres = Array.from({ length: 12 }, (_, i) => i + 1);
   /**
    * Mensaje de éxito devuelto por el back.
    */
@@ -88,7 +90,7 @@ export class RegistroUsuarios {
 
     const datos = { nombre: this.nombreNuevo.trim(), correo: this.correoNuevo.trim(), contrasenia: this.passNueva };
     const peticion = this.tipoNuevoUsuario === 'ESTUDIANTE'
-      ? this.estudianteService.create({ ...datos, carrera: this.carreraNueva, listaIdMateriasInscritas: [] })
+      ? this.estudianteService.create({ ...datos, carrera: this.carreraNueva, semestre: this.semestreNuevo, listaIdMateriasInscritas: [] })
       : this.profesorService.create({ ...datos, listaIdMaterias: [] });
 
     peticion.subscribe({

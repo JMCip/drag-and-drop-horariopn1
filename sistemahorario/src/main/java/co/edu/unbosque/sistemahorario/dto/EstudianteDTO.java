@@ -15,6 +15,7 @@ public class EstudianteDTO extends UsuarioDTO{
 	private List<Long> listaIdMateriasInscritas = new ArrayList<>();
 	private String nombre;
 	private Carrera carrera;
+	private Short semestre;
 	
 	public EstudianteDTO() {
 		super();
@@ -57,6 +58,14 @@ public class EstudianteDTO extends UsuarioDTO{
 		this.carrera = carrera;
 	}
 
+	public Short getSemestre() {
+		return semestre;
+	}
+
+	public void setSemestre(Short semestre) {
+		this.semestre = semestre;
+	}
+
 	public String getNombre() {
 		return nombre;
 	}
@@ -71,14 +80,15 @@ public class EstudianteDTO extends UsuarioDTO{
 				super.toString() + 
 				"\nLista id materias inscritas: " + listaIdMateriasInscritas + 
 				"\nNombre: " + nombre + 
-				"\nCarrera: " + carrera;
+				"\nCarrera: " + carrera + 
+				"\nSemestre: " + semestre;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + Objects.hash(carrera, listaIdMateriasInscritas, nombre);
+		result = prime * result + Objects.hash(carrera, listaIdMateriasInscritas, nombre, semestre);
 		return result;
 	}
 
@@ -94,6 +104,7 @@ public class EstudianteDTO extends UsuarioDTO{
 			return false;
 		EstudianteDTO other = (EstudianteDTO) obj;
 		return Objects.equals(listaIdMateriasInscritas, other.listaIdMateriasInscritas)
-				&& Objects.equals(nombre, other.nombre) && carrera == other.carrera;
+				&& Objects.equals(nombre, other.nombre) && carrera == other.carrera
+				&& Objects.equals(semestre, other.semestre);
 	}
 }

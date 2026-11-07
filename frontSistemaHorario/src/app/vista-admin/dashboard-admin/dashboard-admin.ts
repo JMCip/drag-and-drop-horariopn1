@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { MateriaDTO } from '../../models/materia.model';
 import { EstudianteDTO, ProfesorDTO } from '../../models/usuario.model';
@@ -15,7 +16,7 @@ import { ProfesorService } from '../../services/profesor.service';
 @Component({
   selector: 'app-dashboard-admin',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './dashboard-admin.html',
   styleUrl: './dashboard-admin.css'
 })
@@ -47,11 +48,18 @@ export class DashboardAdmin implements OnInit {
    * Cantidad de administradores.
    */
   totalAdmins = 0;
+  semestres = Array.from({ length: 12 }, (_, i) => i + 1);
+  semestreEditado: Record<number, number | null> = {};
+  mensaje: { exito: boolean; texto: string } | null = null;
 
   /**
    * Carga en paralelo estudiantes, profesores, materias y el total de administradores.
    */
   ngOnInit(): void {
+    this.cargar();
+  }
+
+  private cargar(): void {
     forkJoin({
       estudiantes: this.estudianteService.getAll(),
       profesores: this.profesorService.getAll(),
@@ -59,6 +67,7 @@ export class DashboardAdmin implements OnInit {
       totalAdmins: this.adminService.count()
     }).subscribe(datos => {
       this.estudiantes = datos.estudiantes;
+      this.semestreEditado = Object.fromEntries(datos.estudiantes.map(e => [e.id ?? 0, e.semestre ?? null]));
       this.profesores = datos.profesores;
       this.materias = datos.materias;
       this.totalAdmins = datos.totalAdmins;
@@ -71,6 +80,56 @@ export class DashboardAdmin implements OnInit {
    */
   get totalUsuarios(): number {
     return this.estudiantes.length + this.profesores.length + this.totalAdmins;
+  }
+
+  etiquetaCarrera(estudiante: EstudianteDTO): string {
+    return estudiante.carrera ? ETIQUETAS_CARRERA[estudiante.carrera] : 'Sin carrera';
+  }
+
+  guardarSemestre(estudiante: EstudianteDTO): void {
+    const semestre = this.semestreEditado[estudiante.id ?? 0];
+    if (estudiante.id === undefined || !semestre) return;
+
+    this.estudianteService.updateById(estudiante.id, { ...estudiante, semestre, contrasenia: undefined }).subscribe({
+      next: () => {
+        estudiante.semestre = semestre;
+        this.mensaje = { exito: true, texto: `Semestre de ${estudiante.nombre} actualizado a ${semestre}.` };
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.mensaje = {
+          exito: false,
+          texto: typeof err.error === 'string' && err.error ? err.error : 'No se pudo actualizar. Revisa que el estudiante tenga carrera.'
+        };
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  eliminarEstudiante(estudiante: EstudianteDTO): void {
+    if (estudiante.id === undefined || !confirm(`¿Eliminar al estudiante ${estudiante.nombre}? Se borrarán también sus inscripciones.`)) return;
+    this.estudianteService.deleteById(estudiante.id).subscribe({
+      next: (texto) => this.terminarEliminacion(texto),
+      error: (err) => this.mostrarError(err, 'No se pudo eliminar el estudiante.')
+    });
+  }
+
+  eliminarProfesor(profesor: ProfesorDTO): void {
+    if (profesor.id === undefined || !confirm(`¿Eliminar al profesor ${profesor.nombre}? Sus grupos quedarán sin profesor asignado.`)) return;
+    this.profesorService.deleteById(profesor.id).subscribe({
+      next: (texto) => this.terminarEliminacion(texto),
+      error: (err) => this.mostrarError(err, 'No se pudo eliminar el profesor.')
+    });
+  }
+
+  private terminarEliminacion(texto: string): void {
+    this.mensaje = { exito: true, texto };
+    this.cargar();
+  }
+
+  private mostrarError(err: { error?: unknown }, porDefecto: string): void {
+    this.mensaje = { exito: false, texto: typeof err.error === 'string' && err.error ? err.error : porDefecto };
+    this.cdr.markForCheck();
   }
 
   /**
@@ -94,7 +153,7 @@ export class DashboardAdmin implements OnInit {
     return this.materias.map(m => ({
       nombre: `${m.nombreMateria} (Grupo ${m.grupo})`,
       segunda: this.profesores.find(p => p.id === m.idProfesorAsignado)?.nombre ?? 'Sin asignar',
-      detalle: `${ETIQUETAS_CARRERA[m.carrera] ?? m.carrera} · Semestre ${m.semestre} · ${m.listaIdEstudiantes?.length ?? 0} inscritos`
+      detalle: `${this.materiaService.formatearPlanes(m.planes)} · ${m.listaIdEstudiantes?.length ?? 0} inscritos`
     }));
   }
 }

@@ -41,6 +41,10 @@ export class SidebarSecciones {
    */
   materiasPlegadas: Record<string, boolean> = {};
 
+  get semestresDisponibles(): number[] {
+    return [...new Set(this.todasLasSecciones.map(s => s.semestre))].sort((a, b) => a - b);
+  }
+
   /**
    * Secciones que se muestran: excluye las ya ubicadas y aplica el texto de búsqueda y el filtro de semestre.
    */

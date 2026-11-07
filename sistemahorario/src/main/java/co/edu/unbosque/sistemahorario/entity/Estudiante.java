@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import org.hibernate.annotations.BatchSize;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import co.edu.unbosque.sistemahorario.util.enums.Carrera;
@@ -26,6 +28,7 @@ public class Estudiante extends Usuario{
 	 * Se ignora al serializar a JSON para evitar referencias circulares.
 	 */
 	@JsonIgnore
+	@BatchSize(size = 100)
 	@ManyToMany(mappedBy = "listaEstudiantes")
 	private List<Materia> listaMateriasInscritas = new ArrayList<>();
 	
@@ -39,6 +42,8 @@ public class Estudiante extends Usuario{
 	 */
 	@Enumerated(EnumType.STRING)
 	private Carrera carrera;
+	
+	private Short semestre;
 	
 	public Estudiante() {
 		super();
@@ -81,6 +86,14 @@ public class Estudiante extends Usuario{
 		this.carrera = carrera;
 	}
 
+	public Short getSemestre() {
+		return semestre;
+	}
+
+	public void setSemestre(Short semestre) {
+		this.semestre = semestre;
+	}
+
 	public String getNombre() {
 		return nombre;
 	}
@@ -94,14 +107,15 @@ public class Estudiante extends Usuario{
 		return "Estudiante" + 
 				super.toString() + 
 				"\nNombre: " + nombre + 
-				"\nCarrera: " + carrera;
+				"\nCarrera: " + carrera + 
+				"\nSemestre: " + semestre;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + Objects.hash(carrera, nombre);
+		result = prime * result + Objects.hash(carrera, nombre, semestre);
 		return result;
 	}
 
@@ -116,6 +130,6 @@ public class Estudiante extends Usuario{
 		if (getClass() != obj.getClass())
 			return false;
 		Estudiante other = (Estudiante) obj;
-		return carrera == other.carrera && Objects.equals(nombre, other.nombre);
+		return carrera == other.carrera && Objects.equals(nombre, other.nombre) && Objects.equals(semestre, other.semestre);
 	}
 }

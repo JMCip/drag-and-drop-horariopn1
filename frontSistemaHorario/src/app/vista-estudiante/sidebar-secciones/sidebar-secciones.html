@@ -24,10 +24,7 @@
 
     <select [(ngModel)]="semestreFiltro" class="select-nivel" aria-label="Filtrar por semestre">
       <option value="">Nivel: Todos los semestres</option>
-      <option value="2">Semestre 2</option>
-      <option value="4">Semestre 4</option>
-      <option value="5">Semestre 5</option>
-      <option value="6">Semestre 6</option>
+      <option *ngFor="let s of semestresDisponibles" [value]="s">Semestre {{ s }}</option>
     </select>
   </div>
 

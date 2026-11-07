@@ -16,10 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import co.edu.unbosque.sistemahorario.dto.MateriaDTO;
 import co.edu.unbosque.sistemahorario.entity.Admin;
+import co.edu.unbosque.sistemahorario.entity.Estudiante;
 import co.edu.unbosque.sistemahorario.entity.Usuario;
 import co.edu.unbosque.sistemahorario.service.MateriaService;
 import co.edu.unbosque.sistemahorario.service.UserDetailsServiceImpl;
-import co.edu.unbosque.sistemahorario.util.enums.Carrera;
 
 /**
  * Controlador REST de materias ({@code /materia}).
@@ -58,21 +58,18 @@ public class MateriaController {
 	 *         de la materia; 400 si el semestre, el horario o el grupo no son válidos; 500 en otro caso
 	 */
 	@PostMapping("/crear")
-	public ResponseEntity<String> crearMateria (@RequestParam int[] inicio, @RequestParam int[] fin, @RequestParam String nombreMateria, @RequestParam Carrera carrera, @RequestParam short semestre, @RequestParam(defaultValue = "1") int grupo){
-		
-		MateriaDTO nuevo = new MateriaDTO(inicio, fin, nombreMateria, carrera, semestre);
-		nuevo.setGrupo(grupo);
+	public ResponseEntity<String> crearMateria (@RequestParam int[] inicio, @RequestParam int[] fin, @RequestParam Long idAsignatura, @RequestParam(defaultValue = "1") int grupo){
+
+		MateriaDTO nuevo = new MateriaDTO(inicio, fin, idAsignatura, grupo);
 		int status = matServ.create(nuevo);
 		
 		switch(status) {
 		case 0:
 			return new ResponseEntity<String>("Materia creada con exito", HttpStatus.CREATED);
 		case 1:
-			return new ResponseEntity<String>("El nombre de la materia no tiene un formato valido", HttpStatus.NOT_ACCEPTABLE);
+			return new ResponseEntity<String>("La materia no existe en el catalogo", HttpStatus.NOT_FOUND);
 		case 2:
 			return new ResponseEntity<String>("Ya existe ese grupo de la materia", HttpStatus.CONFLICT);
-		case 3:
-			return new ResponseEntity<String>("La materia no esta dentro de un semestre valido", HttpStatus.BAD_REQUEST);
 		case 4:
 			return new ResponseEntity<String>("El horario de la materia no es valido", HttpStatus.BAD_REQUEST);
 		case 5:
@@ -89,8 +86,9 @@ public class MateriaController {
 	 * @return 200 con la lista de {@link MateriaDTO}
 	 */
 	@GetMapping("/mostrartodo")
-	public ResponseEntity<List<MateriaDTO>> obtenertodo() {
-		List<MateriaDTO> listaMateria = matServ.getAll();
+	public ResponseEntity<List<MateriaDTO>> obtenertodo(Authentication auth) {
+		Usuario usuario = userDetailsService.buscarPorCorreo(auth.getName());
+		List<MateriaDTO> listaMateria = usuario instanceof Estudiante ? matServ.getAllParaEstudiante(usuario.getId()) : matServ.getAll();
 		
 		return new ResponseEntity<List<MateriaDTO>>(listaMateria, HttpStatus.OK);
 	}
@@ -133,21 +131,18 @@ public class MateriaController {
 	 *         404 si no existe; 500 en otro caso
 	 */
 	@PutMapping("/actualizar")
-	public ResponseEntity<String> actualizarMateria(@RequestParam int[] inicio, @RequestParam int[] fin, @RequestParam String nombreMateria, @RequestParam Carrera carrera, @RequestParam short semestre, @RequestParam(defaultValue = "1") int grupo, @RequestParam Long id){
-		
-		MateriaDTO nuevo = new MateriaDTO(inicio, fin, nombreMateria, carrera, semestre);
-		nuevo.setGrupo(grupo);
+	public ResponseEntity<String> actualizarMateria(@RequestParam int[] inicio, @RequestParam int[] fin, @RequestParam Long idAsignatura, @RequestParam(defaultValue = "1") int grupo, @RequestParam Long id){
+
+		MateriaDTO nuevo = new MateriaDTO(inicio, fin, idAsignatura, grupo);
 		int status = matServ.updateById(id, nuevo);
 		
 		switch(status) {
 		case 0:
 			return new ResponseEntity<String>("Materia actualizada con exito", HttpStatus.OK);
 		case 1:
-			return new ResponseEntity<String>("El nombre de la materia no tiene un formato valido", HttpStatus.NOT_ACCEPTABLE);
+			return new ResponseEntity<String>("La materia no existe en el catalogo", HttpStatus.NOT_FOUND);
 		case 2:
 			return new ResponseEntity<String>("Ya existe ese grupo de la materia", HttpStatus.CONFLICT);
-		case 3:
-			return new ResponseEntity<String>("La materia no esta dentro de un semestre valido", HttpStatus.BAD_REQUEST);
 		case 4:
 			return new ResponseEntity<String>("No se puede modificar una materia que ya tiene estudiantes inscritos", HttpStatus.CONFLICT);
 		case 5:
@@ -178,11 +173,27 @@ public class MateriaController {
 		case 0:
 			return new ResponseEntity<String>("Profesor asignado con exito", HttpStatus.ACCEPTED);
 		case 1:
-			return new ResponseEntity<String>("La materia ya tiene un profesor asignado", HttpStatus.CONFLICT);
+			return new ResponseEntity<String>("Ese profesor ya esta asignado a la materia", HttpStatus.CONFLICT);
 		case 2:
 			return new ResponseEntity<String>("El profesor no tiene disponibilidad en el horario de la materia", HttpStatus.CONFLICT);
 		case 3:
 			return new ResponseEntity<String>("No se encontro el profesor o la materia", HttpStatus.NOT_FOUND);
+		default:
+			return new ResponseEntity<String>("Error interno del servidor", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@PutMapping("/quitarprofesor")
+	public ResponseEntity<String> quitarProfesor(@RequestParam Long idMateria) {
+		int status = matServ.quitarProfesor(idMateria);
+
+		switch(status) {
+		case 0:
+			return new ResponseEntity<String>("Profesor quitado de la materia", HttpStatus.OK);
+		case 1:
+			return new ResponseEntity<String>("La materia no tiene profesor asignado", HttpStatus.CONFLICT);
+		case 2:
+			return new ResponseEntity<String>("No se encontro la materia", HttpStatus.NOT_FOUND);
 		default:
 			return new ResponseEntity<String>("Error interno del servidor", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -220,6 +231,8 @@ public class MateriaController {
 			return new ResponseEntity<String>("No se encontro el estudiante o la materia", HttpStatus.NOT_FOUND);
 		case 4:
 			return new ResponseEntity<String>("El estudiante ya esta inscrito en otro grupo de esta materia", HttpStatus.CONFLICT);
+		case 5:
+			return new ResponseEntity<String>("La materia no corresponde a la carrera o al semestre del estudiante", HttpStatus.CONFLICT);
 		default:
 			return new ResponseEntity<String>("Error interno del servidor", HttpStatus.INTERNAL_SERVER_ERROR);
 		}

@@ -24,6 +24,7 @@ export interface AdminDTO extends UsuarioDTO {}
 export interface EstudianteDTO extends UsuarioDTO {
   nombre: string;
   carrera?: Carrera | null;
+  semestre?: number | null;
   listaIdMateriasInscritas: number[];
 }
 

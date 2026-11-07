@@ -1,6 +1,7 @@
 package co.edu.unbosque.sistemahorario.controller;
 
 import co.edu.unbosque.sistemahorario.dto.AuthResponse;
+import co.edu.unbosque.sistemahorario.entity.Estudiante;
 import co.edu.unbosque.sistemahorario.entity.Usuario;
 import co.edu.unbosque.sistemahorario.service.UserDetailsServiceImpl;
 import co.edu.unbosque.sistemahorario.util.JwtUtil; // Ajusta según el nombre de tu paquete de utilidades
@@ -58,7 +59,13 @@ public class AuthController {
         final String jwt = jwtUtil.generateToken(userDetails);
         final Usuario usuario = userDetailsService.buscarPorCorreo(correo);
 
-        return ResponseEntity.ok(new AuthResponse(usuario.getId(), jwt, userDetailsService.obtenerRol(usuario),
-                userDetailsService.obtenerNombre(usuario), usuario.getCorreo()));
+        AuthResponse respuesta = new AuthResponse(usuario.getId(), jwt, userDetailsService.obtenerRol(usuario),
+                userDetailsService.obtenerNombre(usuario), usuario.getCorreo());
+        if (usuario instanceof Estudiante) {
+            Estudiante est = (Estudiante) usuario;
+            respuesta.setCarrera(est.getCarrera() != null ? est.getCarrera().name() : null);
+            respuesta.setSemestre(est.getSemestre());
+        }
+        return ResponseEntity.ok(respuesta);
     }
 }

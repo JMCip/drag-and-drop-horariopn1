@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import org.hibernate.annotations.BatchSize;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Entity;
@@ -22,6 +24,7 @@ public class Profesor extends Usuario{
 	 * Se ignora al serializar a JSON para evitar referencias circulares.
 	 */
 	@JsonIgnore
+	@BatchSize(size = 100)
 	@OneToMany(mappedBy = "profesorAsignado")
 	private List<Materia> listaMaterias = new ArrayList<>();
 

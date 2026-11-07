@@ -46,10 +46,11 @@ public class EstudianteController {
 	 *         400 si el nombre es inválido o el correo ya existe; 500 en cualquier otro caso
 	 */
 	@PostMapping("/crear")
-	public ResponseEntity<String> crearEstudiante(@RequestParam String nombre, @RequestParam String contrasenia, @RequestParam String correo, @RequestParam Carrera carrera){
+	public ResponseEntity<String> crearEstudiante(@RequestParam String nombre, @RequestParam String contrasenia, @RequestParam String correo, @RequestParam Carrera carrera, @RequestParam short semestre){
 	
 	EstudianteDTO nuevo = new EstudianteDTO(correo, contrasenia, nombre);
 	nuevo.setCarrera(carrera);
+	nuevo.setSemestre(semestre);
 	int status = estServ.create(nuevo);
 	
 	switch(status) {
@@ -63,6 +64,8 @@ public class EstudianteController {
 		return new ResponseEntity<String>("El nombre ingresado no es valido", HttpStatus.BAD_REQUEST);
 	case 4:
 		return new ResponseEntity<String>("Correo ya existente", HttpStatus.BAD_REQUEST);
+	case 5:
+		return new ResponseEntity<String>("El semestre debe estar entre 1 y 12", HttpStatus.BAD_REQUEST);
 	default:
 		return new ResponseEntity<String>("Error interno del servidor", HttpStatus.INTERNAL_SERVER_ERROR);
 	}
@@ -115,10 +118,11 @@ public class EstudianteController {
 	 *         500 en cualquier otro caso
 	 */
 	@PutMapping("/actualizar")
-	public ResponseEntity<String> actualizarEstudiante(@RequestParam String nombre, @RequestParam(required = false) String contrasenia, @RequestParam String correo, @RequestParam Carrera carrera, @RequestParam Long id){
+	public ResponseEntity<String> actualizarEstudiante(@RequestParam String nombre, @RequestParam(required = false) String contrasenia, @RequestParam String correo, @RequestParam Carrera carrera, @RequestParam short semestre, @RequestParam Long id){
 		
 		EstudianteDTO nuevo = new EstudianteDTO(correo, contrasenia, nombre);
 		nuevo.setCarrera(carrera);
+		nuevo.setSemestre(semestre);
 		int status = estServ.updateById(id,nuevo);
 		
 		switch(status) {
@@ -136,6 +140,8 @@ public class EstudianteController {
 			return new ResponseEntity<String>("Correo ya existente", HttpStatus.BAD_REQUEST);
 		case 6:
 			return new ResponseEntity<String>("Estudiante no encontrado", HttpStatus.NOT_FOUND);
+		case 7:
+			return new ResponseEntity<String>("El semestre debe estar entre 1 y 12", HttpStatus.BAD_REQUEST);
 		default:
 			return new ResponseEntity<String>("Error interno del servidor", HttpStatus.INTERNAL_SERVER_ERROR);
 		}

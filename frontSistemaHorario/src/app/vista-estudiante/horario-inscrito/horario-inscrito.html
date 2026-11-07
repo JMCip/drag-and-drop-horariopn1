@@ -14,9 +14,14 @@
         <h2>Mi horario inscrito</h2>
         <p>{{ horarioInscrito.length }} materias inscritas oficialmente</p>
       </div>
-      <button type="button" class="btn btn-secundario" (click)="descargarJSON()">
-        <i class="fa-solid fa-download"></i> Descargar JSON
-      </button>
+      <div class="acciones-descarga">
+        <button type="button" class="btn btn-primario" (click)="descargarPDF()" [disabled]="generandoPDF">
+          <i class="fa-solid fa-file-pdf"></i> {{ generandoPDF ? 'Generando...' : 'Descargar PDF' }}
+        </button>
+        <button type="button" class="btn btn-secundario" (click)="descargarJSON()">
+          <i class="fa-solid fa-download"></i> Descargar JSON
+        </button>
+      </div>
     </div>
 
     <div class="tarjeta-tabla-resumen">
