@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { DIAS_MATERIA, MateriaDTO, SIN_CLASE } from '../models/materia.model';
+import { DIAS_MATERIA, GrupoMateria, MateriaDTO, PlanEstudio, SIN_CLASE } from '../models/materia.model';
 import { ETIQUETAS_CARRERA } from '../models/carrera.enum';
 import { SeccionModel, FranjaHoraria } from '../models/seccion.model';
 
@@ -12,7 +12,7 @@ export class MateriaService {
   private http = inject(HttpClient);
   private readonly urlBase = 'http://localhost:8080/materia';
 
-  create(data: MateriaDTO): Observable<string> {
+  create(data: GrupoMateria): Observable<string> {
     return this.http.post(`${this.urlBase}/crear`, null, { params: this.aParams(data), responseType: 'text' });
   }
 
@@ -25,7 +25,7 @@ export class MateriaService {
     return this.http.delete(`${this.urlBase}/eliminar`, { params, responseType: 'text' });
   }
 
-  updateById(id: number, data: MateriaDTO): Observable<string> {
+  updateById(id: number, data: GrupoMateria): Observable<string> {
     const params = this.aParams(data).set('id', id);
     return this.http.put(`${this.urlBase}/actualizar`, null, { params, responseType: 'text' });
   }
@@ -33,6 +33,11 @@ export class MateriaService {
   asignarProfesor(idProfesor: number, idMateria: number): Observable<string> {
     const params = new HttpParams().set('idProfesor', idProfesor).set('idMateria', idMateria);
     return this.http.put(`${this.urlBase}/asignarprofesor`, null, { params, responseType: 'text' });
+  }
+
+  quitarProfesor(idMateria: number): Observable<string> {
+    const params = new HttpParams().set('idMateria', idMateria);
+    return this.http.put(`${this.urlBase}/quitarprofesor`, null, { params, responseType: 'text' });
   }
 
   inscribirEstudiante(idEstudiante: number, idMateria: number): Observable<string> {
@@ -90,6 +95,10 @@ export class MateriaService {
       .join(' · ');
   }
 
+  formatearPlanes(planes: PlanEstudio[]): string {
+    return planes.map(p => `${ETIQUETAS_CARRERA[p.carrera] ?? p.carrera} (${p.semestre}°)`).join(', ');
+  }
+
   adaptarMateriaASeccion(
     dto: MateriaDTO,
     nombreDocente = 'Prof. Asignado'
@@ -100,8 +109,8 @@ export class MateriaService {
       nombreMateria: dto.nombreMateria,
       grupo: dto.grupo,
       docente: nombreDocente,
-      semestre: dto.semestre,
-      carrera: ETIQUETAS_CARRERA[dto.carrera] ?? dto.carrera,
+      semestre: dto.semestre ?? Math.min(...dto.planes.map(p => p.semestre)),
+      carrera: dto.carrera ? ETIQUETAS_CARRERA[dto.carrera] : this.formatearPlanes(dto.planes),
       franjas: this.aFranjas(dto),
       estudiantesInscritos: dto.listaIdEstudiantes?.length ?? 0
     };
@@ -112,11 +121,9 @@ export class MateriaService {
   }
 
   // Spring recibe los arreglos repitiendo el parámetro: inicio=7&inicio=-1&...
-  private aParams(data: MateriaDTO): HttpParams {
+  private aParams(data: GrupoMateria): HttpParams {
     let params = new HttpParams()
-      .set('nombreMateria', data.nombreMateria)
-      .set('carrera', data.carrera)
-      .set('semestre', data.semestre)
+      .set('idAsignatura', data.idAsignatura)
       .set('grupo', data.grupo);
     data.inicio.forEach(h => params = params.append('inicio', h));
     data.fin.forEach(h => params = params.append('fin', h));

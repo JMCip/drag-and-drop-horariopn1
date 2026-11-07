@@ -5,13 +5,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import org.hibernate.annotations.BatchSize;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import co.edu.unbosque.sistemahorario.util.enums.Carrera;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -21,58 +20,45 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+// Un grupo de una asignatura del catalogo, con su horario y profesor
 @Entity
 @Table(name = "materia")
 public class Materia {
 
 	private @Id @GeneratedValue(strategy = GenerationType.IDENTITY) long id;
-	
+
 	private int [] inicio;
 	private int [] fin;
-	
-	private String nombreMateria;
-	
-	@Enumerated(EnumType.STRING)
-	private Carrera carrera;
-	
-	private short semestre;
-	
+
+	@ManyToOne(optional = false)
+	@JoinColumn(name = "asignatura_id", nullable = false)
+	private Asignatura asignatura;
+
 	@Column(nullable = false)
 	private int grupo = 1;
-	
+
 	@ManyToOne
 	@JoinColumn(name = "profesor_id")
 	private Profesor profesorAsignado;
-	
+
 	@JsonIgnore
+	@BatchSize(size = 100)
 	@ManyToMany
 	@JoinTable(name = "materia_estudiante",
 			joinColumns = @JoinColumn(name = "materia_id"),
 			inverseJoinColumns = @JoinColumn(name = "estudiante_id"))
 	private List<Estudiante> listaEstudiantes = new ArrayList<>();
-	
+
 	public Materia() {
 		super();
 	}
 
 
-	public Materia(int[] inicio, int[] fin, String nombreMateria, Carrera carrera, short semestre) {
+	public Materia(int[] inicio, int[] fin, Asignatura asignatura, int grupo) {
 		this.inicio = inicio;
 		this.fin = fin;
-		this.nombreMateria = nombreMateria;
-		this.carrera = carrera;
-		this.semestre = semestre;
-	}
-
-	public Materia(int[] inicio, int[] fin, String nombreMateria, Carrera carrera, short semestre,
-			Profesor profesorAsignado, List<Estudiante> listaEstudiantes) {
-		this.inicio = inicio;
-		this.fin = fin;
-		this.nombreMateria = nombreMateria;
-		this.carrera = carrera;
-		this.semestre = semestre;
-		this.profesorAsignado = profesorAsignado;
-		this.listaEstudiantes = listaEstudiantes;
+		this.asignatura = asignatura;
+		this.grupo = grupo;
 	}
 
 	public long getId() {
@@ -99,28 +85,12 @@ public class Materia {
 		this.fin = fin;
 	}
 
-	public String getNombreMateria() {
-		return nombreMateria;
+	public Asignatura getAsignatura() {
+		return asignatura;
 	}
 
-	public void setNombreMateria(String nombreMateria) {
-		this.nombreMateria = nombreMateria;
-	}
-
-	public Carrera getCarrera() {
-		return carrera;
-	}
-
-	public void setCarrera(Carrera carrera) {
-		this.carrera = carrera;
-	}
-
-	public short getSemestre() {
-		return semestre;
-	}
-
-	public void setSemestre(short semestre) {
-		this.semestre = semestre;
+	public void setAsignatura(Asignatura asignatura) {
+		this.asignatura = asignatura;
 	}
 
 	public int getGrupo() {
@@ -150,13 +120,11 @@ public class Materia {
 
 	@Override
 	public String toString() {
-		return "Materia " + 
-				"\nId: " + id + 
-				"\nInicio: " + Arrays.toString(inicio) + 
-				"\nFin: " + Arrays.toString(fin) +	
-				"\nNombre materia:" + nombreMateria + 
-				"\nCarrera: " + carrera + 
-				"\nSemestre: " + semestre + 
+		return "Materia " +
+				"\nId: " + id +
+				"\nInicio: " + Arrays.toString(inicio) +
+				"\nFin: " + Arrays.toString(fin) +
+				"\nAsignatura: " + (asignatura != null ? asignatura.getNombre() : null) +
 				"\nGrupo: " + grupo;
 	}
 
@@ -167,8 +135,7 @@ public class Materia {
 		int result = 1;
 		result = prime * result + Arrays.hashCode(fin);
 		result = prime * result + Arrays.hashCode(inicio);
-		result = prime * result
-				+ Objects.hash(carrera, grupo, id, nombreMateria, semestre);
+		result = prime * result + Objects.hash(grupo, id);
 		return result;
 	}
 
@@ -182,8 +149,7 @@ public class Materia {
 		if (getClass() != obj.getClass())
 			return false;
 		Materia other = (Materia) obj;
-		return carrera == other.carrera && Arrays.equals(fin, other.fin) && id == other.id
-				&& Arrays.equals(inicio, other.inicio) && Objects.equals(nombreMateria, other.nombreMateria)
-				&& semestre == other.semestre && grupo == other.grupo;
+		return Arrays.equals(fin, other.fin) && id == other.id
+				&& Arrays.equals(inicio, other.inicio) && grupo == other.grupo;
 	}
 }

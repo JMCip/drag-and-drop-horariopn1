@@ -28,6 +28,13 @@
       </select>
     </div>
 
+    <div class="campo" *ngIf="tipoNuevoUsuario === 'ESTUDIANTE'">
+      <label>Semestre</label>
+      <select [(ngModel)]="semestreNuevo" name="semestre">
+        <option *ngFor="let s of semestres" [ngValue]="s">{{ s }}</option>
+      </select>
+    </div>
+
     <div class="campo">
       <label>Contraseña</label>
       <input type="password" [(ngModel)]="passNueva" name="pass" placeholder="Mínimo 8 caracteres" required />

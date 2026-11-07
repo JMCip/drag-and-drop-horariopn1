@@ -37,3 +37,8 @@
   font-size: 11px;
   margin-right: 4px;
 }
+
+.acciones-descarga {
+  display: flex;
+  gap: 8px;
+}

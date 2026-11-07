@@ -1,34 +1,35 @@
 <div class="contenedor-materias">
   <section class="tarjeta-formulario-admin">
-    <h2>Crear materia</h2>
+    <h2>{{ editando ? 'Editar grupo' : 'Crear grupo de una materia' }}</h2>
+    <p class="aviso-edicion" *ngIf="editando">
+      Editando {{ editando.nombreMateria }} (Grupo {{ editando.grupo }}). Si cambias el horario, el grupo queda sin profesor.
+      No se puede editar un grupo que ya tiene estudiantes inscritos.
+    </p>
 
     <div class="alerta-admin error" *ngIf="mensajeError">⚠ {{ mensajeError }}</div>
     <div class="alerta-admin exito" *ngIf="mensajeExito">✓ {{ mensajeExito }}</div>
 
     <form (ngSubmit)="crearMateria()" class="form-registro">
       <div class="campo">
-        <label for="nombreMateriaInput">Nombre</label>
-        <input id="nombreMateriaInput" type="text" [(ngModel)]="nombreMateria" name="nombreMateria" placeholder="Ej. Bases de Datos" required />
-      </div>
-
-      <div class="campo">
         <label for="carreraInput">Carrera</label>
-        <select id="carreraInput" [(ngModel)]="carrera" name="carrera">
+        <select id="carreraInput" [(ngModel)]="carrera" (ngModelChange)="cambiarCarrera()" name="carrera">
           <option *ngFor="let c of carreras" [value]="c.valor">{{ c.etiqueta }}</option>
         </select>
       </div>
 
-      <div class="fila-doble">
-        <div class="campo">
-          <label for="semestreInput">Semestre</label>
-          <select id="semestreInput" [(ngModel)]="semestre" name="semestre">
-            <option *ngFor="let s of semestres" [ngValue]="s">{{ s }}</option>
-          </select>
-        </div>
-        <div class="campo">
-          <label for="grupoInput">Grupo</label>
-          <input id="grupoInput" type="number" min="1" [(ngModel)]="grupo" name="grupo" required />
-        </div>
+      <div class="campo">
+        <label for="asignaturaInput">Materia del plan de estudios</label>
+        <select id="asignaturaInput" [(ngModel)]="idAsignatura" name="asignatura">
+          <option [ngValue]="null">Elegir materia</option>
+          <option *ngFor="let a of opcionesAsignatura" [ngValue]="a.id">{{ a.etiqueta }}</option>
+        </select>
+        <small *ngIf="cargandoCatalogo">Cargando catálogo...</small>
+        <small *ngIf="!cargandoCatalogo && opcionesAsignatura.length === 0">Esta carrera no tiene materias en el catálogo.</small>
+      </div>
+
+      <div class="campo">
+        <label for="grupoInput">Grupo</label>
+        <input id="grupoInput" type="number" min="1" [(ngModel)]="grupo" name="grupo" required />
       </div>
 
       <div class="campo">
@@ -46,39 +47,50 @@
         </div>
       </div>
 
-      <button type="submit" class="btn btn-primario">Crear materia</button>
+      <div class="acciones-form">
+        <button type="submit" class="btn btn-primario">{{ editando ? 'Guardar cambios' : 'Crear grupo' }}</button>
+        <button type="button" class="btn btn-secundario" *ngIf="editando" (click)="cancelarEdicion()">Cancelar</button>
+      </div>
     </form>
   </section>
 
   <section class="tarjeta-listados">
-    <h2>Materias y profesores</h2>
+    <h2>Grupos y profesores</h2>
     <table class="tabla-admin">
       <thead>
       <tr>
         <th>Materia</th>
+        <th>Carreras (semestre)</th>
         <th>Horario</th>
         <th>Docente</th>
+        <th></th>
       </tr>
       </thead>
       <tbody>
       <tr *ngFor="let m of materias">
         <td>{{ m.nombreMateria }} (Grupo {{ m.grupo }})</td>
+        <td>{{ carrerasDe(m) }}</td>
         <td class="tabular-nums">{{ horarioDe(m) }}</td>
         <td>
-          <span *ngIf="m.idProfesorAsignado; else sinProfesor">{{ nombreDocente(m) }}</span>
-          <ng-template #sinProfesor>
-            <div class="asignar-profesor" *ngIf="m.id !== undefined">
-              <select [(ngModel)]="profesorElegido[m.id]" [name]="'profesor' + m.id" aria-label="Profesor">
-                <option [ngValue]="undefined" disabled>Elegir profesor</option>
-                <option *ngFor="let p of profesores" [ngValue]="p.id">{{ p.nombre }}</option>
-              </select>
-              <button type="button" class="btn btn-secundario" (click)="asignarProfesor(m)">Asignar</button>
-            </div>
-          </ng-template>
+          <div class="docente-actual">{{ m.idProfesorAsignado ? nombreDocente(m) : 'Sin profesor' }}</div>
+          <div class="asignar-profesor" *ngIf="m.id !== undefined">
+            <select [(ngModel)]="profesorElegido[m.id]" [name]="'profesor' + m.id" aria-label="Profesor">
+              <option [ngValue]="undefined" disabled>{{ m.idProfesorAsignado ? 'Cambiar por...' : 'Elegir profesor' }}</option>
+              <option *ngFor="let p of profesores" [ngValue]="p.id">{{ p.nombre }}</option>
+            </select>
+            <button type="button" class="btn btn-secundario" (click)="asignarProfesor(m)">{{ m.idProfesorAsignado ? 'Cambiar' : 'Asignar' }}</button>
+            <button type="button" class="btn btn-secundario" *ngIf="m.idProfesorAsignado" (click)="quitarProfesor(m)">Quitar</button>
+          </div>
+        </td>
+        <td>
+          <div class="acciones-fila">
+            <button type="button" class="btn btn-secundario" (click)="editarGrupo(m)">Editar</button>
+            <button type="button" class="btn btn-peligro" (click)="eliminarGrupo(m)">Eliminar</button>
+          </div>
         </td>
       </tr>
       <tr *ngIf="materias.length === 0">
-        <td colspan="3">No hay materias.</td>
+        <td colspan="5">No hay grupos creados.</td>
       </tr>
       </tbody>
     </table>

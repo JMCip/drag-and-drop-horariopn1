@@ -21,6 +21,10 @@ export class SidebarSecciones {
   semestreFiltro = '';
   materiasPlegadas: Record<string, boolean> = {};
 
+  get semestresDisponibles(): number[] {
+    return [...new Set(this.todasLasSecciones.map(s => s.semestre))].sort((a, b) => a - b);
+  }
+
   get seccionesDisponiblesFiltradas(): SeccionModel[] {
     const ubicadasIds = new Set(this.seccionesUbicadas.map(s => s.id));
     return this.todasLasSecciones.filter(s => {

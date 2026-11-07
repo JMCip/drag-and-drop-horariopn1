@@ -39,7 +39,8 @@ export class EstudianteService {
     const params = new HttpParams()
       .set('nombre', data.nombre)
       .set('correo', data.correo)
-      .set('carrera', data.carrera ?? '');
+      .set('carrera', data.carrera ?? '')
+      .set('semestre', data.semestre ?? '');
     return data.contrasenia ? params.set('contrasenia', data.contrasenia) : params;
   }
 }

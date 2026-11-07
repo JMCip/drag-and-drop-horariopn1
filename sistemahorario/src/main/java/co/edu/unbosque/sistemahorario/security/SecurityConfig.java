@@ -48,7 +48,7 @@ public class SecurityConfig {
                 // Un estudiante solo opera sobre si mismo: lo valida MateriaController
                 .requestMatchers("/materia/inscribirestudiante", "/materia/desinscribirestudiante").hasAnyRole("ADMIN", "ESTUDIANTE")
                 // Todo lo demas de estos modulos es de la Secretaria Academica
-                .requestMatchers("/admin/**", "/estudiante/**", "/profesor/**", "/materia/**").hasRole("ADMIN")
+                .requestMatchers("/admin/**", "/estudiante/**", "/profesor/**", "/materia/**", "/asignatura/**").hasRole("ADMIN")
                 // Cualquier otra petición requiere autenticación
                 .anyRequest().authenticated()
             )

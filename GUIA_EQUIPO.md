@@ -2,7 +2,9 @@
 
 Todos usamos la misma base de datos online en Aiven. Lo que uno crea, los demás lo ven.
 
-**No necesitas instalar un servidor MySQL ni crear la base.** Las tablas y el admin ya existen. No vuelvas a correr `base_de_datos.sql`.
+**No necesitas instalar un servidor MySQL ni crear la base.** Las tablas, el catálogo de materias y el admin ya existen en Aiven. No vuelvas a correr los scripts `.sql`.
+
+Si algún día se crea una base nueva (por ejemplo local), se corre `sistemahorario/base_de_datos.sql` y después `sistemahorario/catalogo_materias.sql`.
 
 ## Qué necesitas instalar
 
@@ -53,8 +55,11 @@ El back usa el puerto 8080 y el front el 4200. Cada quien los corre en su propio
 
 ## Usuarios y materias
 
-- **Estudiantes y profesores:** entra como admin > pestaña "Registrar usuario".
-- **Materias:** todavía no hay pantalla. Usa `sistemahorario/materias_ejemplo.sql` en Workbench o Swagger.
+- **Estudiantes y profesores:** entra como admin > pestaña "Registrar usuario". Al estudiante se le elige carrera y semestre.
+- **Semestre del estudiante:** el admin lo cambia en Panel > Estudiantes.
+- **Catálogo:** las materias de cada carrera y su semestre salen del Excel del proyecto. Están cargadas en la base (tablas `asignatura` y `plan_estudio`) y no se editan desde la app.
+- **Grupos:** admin > pestaña "Materias": se elige la carrera, la materia del catálogo, el número de grupo y el horario, y después se asigna el profesor. Un grupo de una materia común (por ejemplo Matemáticas 1) sirve a todas las carreras que la tienen.
+- **Qué ve un estudiante:** solo los grupos de materias de su carrera, del semestre 1 hasta el suyo. El back lo valida también al inscribir.
 
 Swagger está en <http://localhost:8080/swagger-ui.html>. Ejecuta `POST /api/auth/login`, copia el `token`, dale al botón **Authorize**, pégalo y prueba los endpoints.
 

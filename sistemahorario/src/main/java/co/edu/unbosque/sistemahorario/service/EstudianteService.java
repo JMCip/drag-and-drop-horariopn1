@@ -62,8 +62,12 @@ public class EstudianteService implements CRUDOPeration<EstudianteDTO>{
 		if(profRepo.existsByCorreo(data.getCorreo()) || estRepo.existsByCorreo(data.getCorreo()) || admRepo.existsByCorreo(data.getCorreo()))
 			return 4;
 		
+		if(!semestreValido(data.getSemestre()))
+			return 5;
+		
 		Estudiante nuevo = new Estudiante(data.getCorreo(), encoder.encode(data.getContrasenia()), data.getNombre());
 		nuevo.setCarrera(data.getCarrera());
+		nuevo.setSemestre(data.getSemestre());
 		estRepo.save(nuevo);
 		return 0;
 	}
@@ -127,6 +131,9 @@ public class EstudianteService implements CRUDOPeration<EstudianteDTO>{
 		if(profRepo.existsByCorreo(data.getCorreo()) || admRepo.existsByCorreo(data.getCorreo()))
 			return 4;
 		
+		if(!semestreValido(data.getSemestre()))
+			return 7;
+		
 		if(find.isPresent()) {
 			Estudiante temp = find.get();
 			
@@ -135,6 +142,7 @@ public class EstudianteService implements CRUDOPeration<EstudianteDTO>{
 			
 			temp.setNombre(data.getNombre());
 			temp.setCarrera(data.getCarrera());
+			temp.setSemestre(data.getSemestre());
 			temp.setCorreo(data.getCorreo());
 			if(cambiaContrasenia)
 				temp.setContrasenia(encoder.encode(data.getContrasenia()));
@@ -162,7 +170,12 @@ public class EstudianteService implements CRUDOPeration<EstudianteDTO>{
 		EstudianteDTO dto = new EstudianteDTO(entity.getCorreo(), null, idsMaterias, entity.getNombre());
 		dto.setId(entity.getId());
 		dto.setCarrera(entity.getCarrera());
+		dto.setSemestre(entity.getSemestre());
 		return dto;
+	}
+	
+	private boolean semestreValido(Short semestre) {
+		return semestre != null && semestre >= 1 && semestre <= 12;
 	}
 	
 	public int validarInicioSesion(String correo, String pw) {

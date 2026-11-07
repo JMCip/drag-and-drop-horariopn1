@@ -28,3 +28,20 @@
   border: 1px solid var(--color-borde);
   border-radius: var(--radius-btn);
 }
+
+.acciones-form,
+.acciones-fila {
+  display: flex;
+  gap: 8px;
+}
+
+.docente-actual {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.aviso-edicion {
+  font-size: 13px;
+  color: var(--color-texto-sec);
+  margin: 4px 0 12px;
+}
