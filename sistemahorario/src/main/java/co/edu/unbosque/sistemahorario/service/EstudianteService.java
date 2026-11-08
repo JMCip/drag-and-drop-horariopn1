@@ -46,8 +46,9 @@ public class EstudianteService implements CRUDOPeration<EstudianteDTO>{
 	/**
 	 * Crea un estudiante.
 	 *
-	 * @param data correo, contraseña, nombre y carrera
-	 * @return 0 si se creó; 1 correo inválido; 2 contraseña débil; 3 nombre inválido; 4 correo ya existente
+	 * @param data correo, contraseña, nombre, carrera y semestre
+	 * @return 0 si se creó; 1 correo inválido; 2 contraseña débil; 3 nombre inválido; 4 correo ya existente;
+	 *         5 semestre fuera del rango 1 a 12
 	 */
 	@Override
 	public int create(EstudianteDTO data) {
@@ -124,14 +125,14 @@ public class EstudianteService implements CRUDOPeration<EstudianteDTO>{
 	}
 
 	/**
-	 * Actualiza nombre, carrera, correo y, si se envía, la contraseña de un estudiante.
+	 * Actualiza nombre, carrera, semestre, correo y, si se envía, la contraseña de un estudiante.
 	 * Si la contraseña llega vacía se conserva la actual.
 	 *
 	 * @param id   identificador del estudiante
 	 * @param data nuevos datos
 	 * @return 0 si se actualizó; 1 correo inválido; 2 contraseña débil; 3 nombre inválido;
 	 *         4 el correo ya lo usa un profesor o administrador; 5 el correo ya lo usa otro estudiante;
-	 *         6 no se encontró el estudiante
+	 *         6 no se encontró el estudiante; 7 semestre fuera del rango 1 a 12
 	 */
 	@Override
 	public int updateById(Long id, EstudianteDTO data) {
@@ -223,6 +224,12 @@ public class EstudianteService implements CRUDOPeration<EstudianteDTO>{
 		return dto;
 	}
 	
+	/**
+	 * Valida que el semestre exista y esté entre 1 y 12.
+	 *
+	 * @param semestre semestre a validar
+	 * @return {@code true} si es válido
+	 */
 	private boolean semestreValido(Short semestre) {
 		return semestre != null && semestre >= 1 && semestre <= 12;
 	}

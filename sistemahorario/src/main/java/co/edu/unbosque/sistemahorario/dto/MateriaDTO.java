@@ -8,25 +8,40 @@ import java.util.Objects;
 import co.edu.unbosque.sistemahorario.util.enums.Carrera;
 
 /**
- * Objeto de transferencia de una materia (un grupo concreto).
+ * Objeto de transferencia de un grupo de una asignatura.
  * <p>
- * El profesor y los estudiantes se envían solo como ids ({@code idProfesorAsignado} y
- * {@code listaIdEstudiantes}). El horario va en {@code inicio} y {@code fin}: 5 valores,
- * de lunes a viernes, con {@code -1} cuando ese día no hay clase.
+ * Lleva la asignatura ({@code idAsignatura}, {@code nombreMateria}) y la lista de {@code planes} en los que
+ * aparece (carrera y semestre). El profesor y los estudiantes se envían solo como ids
+ * ({@code idProfesorAsignado} y {@code listaIdEstudiantes}). El horario va en {@code inicio} y {@code fin}:
+ * 5 valores, de lunes a viernes, con {@code -1} cuando ese día no hay clase.
+ * <p>
+ * Los campos {@code carrera} y {@code semestre} solo vienen llenos cuando consulta un estudiante.
  */
 public class MateriaDTO {
 
 	private long id;
 	private int [] inicio;
 	private int [] fin;
+	/**
+	 * Identificador de la asignatura del catálogo.
+	 */
 	private long idAsignatura;
 	private String nombreMateria;
 	private int grupo = 1;
 	private Long idProfesorAsignado;
 	private List<Long> listaIdEstudiantes = new ArrayList<>();
+	/**
+	 * Carreras y semestres en los que aparece la asignatura.
+	 */
 	private List<PlanEstudioDTO> planes = new ArrayList<>();
+	/**
+	 * Carrera del estudiante que consulta. Solo se llena en las respuestas para un estudiante.
+	 */
 	// Solo en las respuestas para un estudiante: su carrera y el semestre de la materia en ella
 	private Carrera carrera;
+	/**
+	 * Semestre de la asignatura en la carrera del estudiante. Solo se llena en las respuestas para un estudiante.
+	 */
 	private Short semestre;
 
 	public MateriaDTO() {

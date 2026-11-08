@@ -41,7 +41,13 @@ export class RegistroUsuarios {
    * Carrera elegida (solo aplica a estudiantes).
    */
   carreraNueva = Carrera.ING_SISTEMAS;
+  /**
+   * Semestre elegido (solo aplica a estudiantes).
+   */
   semestreNuevo = 1;
+  /**
+   * Semestres que se pueden elegir: del 1 al 12.
+   */
   semestres = Array.from({ length: 12 }, (_, i) => i + 1);
   /**
    * Mensaje de éxito devuelto por el back.

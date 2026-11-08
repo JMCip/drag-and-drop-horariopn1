@@ -39,10 +39,11 @@ public class AuthController {
      * <p>
      * Flujo: autentica con {@link AuthenticationManager} (compara la contraseña contra el hash BCrypt),
      * busca al usuario para conocer su rol y su nombre, genera el token y lo devuelve junto con esos datos.
+     * Si el usuario es un estudiante, la respuesta incluye además su carrera y su semestre.
      *
      * @param correo     correo del usuario
      * @param contrasenia contraseña en texto plano (se compara contra el hash guardado)
-     * @return 200 con un {@link AuthResponse} (id, token, rol, nombre y correo);
+     * @return 200 con un {@link AuthResponse} (id, token, rol, nombre, correo y, para estudiantes, carrera y semestre);
      *         401 si las credenciales no son válidas
      */
     @PostMapping("/login")

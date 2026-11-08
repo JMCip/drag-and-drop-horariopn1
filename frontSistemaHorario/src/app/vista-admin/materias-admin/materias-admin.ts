@@ -11,7 +11,8 @@ import { MateriaService } from '../../services/materia.service';
 import { ProfesorService } from '../../services/profesor.service';
 
 /**
- * Pestaña "Materias" del administrador: crear materias (grupos) con su horario, listarlas y asignarles profesor.
+ * Pestaña "Materias" del administrador: crear, editar y eliminar grupos de materias del catálogo, listarlos,
+ * asignarles o quitarles profesor. El catálogo (materias por carrera y semestre) solo se consulta; no se edita desde la app.
  */
 @Component({
   selector: 'app-materias-admin',
@@ -43,18 +44,39 @@ export class MateriasAdmin implements OnInit {
    */
   horasFin = [8, 9, 10, 11, 12, 13, 15, 16, 17, 18, 19, 20, 21, 22];
 
+  /**
+   * Carrera elegida para la materia nueva.
+   */
   carrera = Carrera.ING_SISTEMAS;
+  /**
+   * Asignatura del catálogo elegida para el grupo; `null` si aún no se elige.
+   */
   idAsignatura: number | null = null;
+  /**
+   * Número de grupo de la materia nueva.
+   */
   grupo = 1;
   /**
    * Horario de la materia nueva: una fila por día con hora de inicio y de fin (o vacío si ese día no hay clase).
    */
   horario = this.horarioVacio();
+  /**
+   * Grupo que se está editando; `null` cuando el formulario crea uno nuevo.
+   */
   // Grupo que se esta editando; null cuando el formulario crea uno nuevo
   editando: MateriaDTO | null = null;
 
+  /**
+   * Catálogo completo de asignaturas con sus planes.
+   */
   asignaturas: AsignaturaDTO[] = [];
+  /**
+   * Indica que el catálogo se está cargando.
+   */
   cargandoCatalogo = true;
+  /**
+   * Asignaturas de la carrera elegida para el desplegable (semestre y nombre). Se recalcula al cambiar la carrera, no con un getter, porque un getter que crea objetos nuevos rompe el select.
+   */
   // Se recalcula solo al cambiar la carrera: un getter con objetos nuevos rompe el select
   opcionesAsignatura: { id: number; etiqueta: string }[] = [];
   /**
@@ -80,7 +102,7 @@ export class MateriasAdmin implements OnInit {
   mensajeError = '';
 
   /**
-   * Al abrir la pestaña carga materias y profesores.
+   * Al abrir la pestaña carga el catálogo de asignaturas y, con `cargar`, los grupos y los profesores.
    */
   ngOnInit(): void {
     this.asignaturaService.getAll().subscribe({
@@ -98,6 +120,11 @@ export class MateriasAdmin implements OnInit {
     this.cargar();
   }
 
+  /**
+   * Arma las opciones del desplegable: las asignaturas de la carrera elegida, ordenadas por semestre y por nombre.
+   *
+   * @returns lista de opciones con id y etiqueta
+   */
   // Materias del catálogo de la carrera elegida, ordenadas por semestre
   private calcularOpciones(): { id: number; etiqueta: string }[] {
     return this.asignaturas
@@ -107,6 +134,9 @@ export class MateriasAdmin implements OnInit {
       .map(x => ({ id: x.a.id, etiqueta: `${x.plan!.semestre}° · ${x.a.nombre}` }));
   }
 
+  /**
+   * Al cambiar de carrera se borra la asignatura elegida y se recalculan las opciones.
+   */
   cambiarCarrera(): void {
     this.idAsignatura = null;
     this.opcionesAsignatura = this.calcularOpciones();
@@ -128,10 +158,19 @@ export class MateriasAdmin implements OnInit {
     return this.materiaService.formatearHorario(materia);
   }
 
+  /**
+   * @param materia grupo a consultar
+   * @returns las carreras y semestres de su asignatura, como texto
+   */
   carrerasDe(materia: MateriaDTO): string {
     return this.materiaService.formatearPlanes(materia.planes);
   }
 
+  /**
+   * Pone un grupo en el formulario para editarlo: su carrera, asignatura, número de grupo y horario.
+   *
+   * @param materia grupo a editar
+   */
   editarGrupo(materia: MateriaDTO): void {
     this.limpiarMensajes();
     this.editando = materia;
@@ -150,6 +189,9 @@ export class MateriasAdmin implements OnInit {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  /**
+   * Sale del modo edición y deja el formulario vacío.
+   */
   cancelarEdicion(): void {
     this.editando = null;
     this.idAsignatura = null;
@@ -158,6 +200,11 @@ export class MateriasAdmin implements OnInit {
     this.limpiarMensajes();
   }
 
+  /**
+   * Quita el profesor de un grupo después de pedir confirmación. Muestra el mensaje del back.
+   *
+   * @param materia grupo al que se le quita el profesor
+   */
   quitarProfesor(materia: MateriaDTO): void {
     this.limpiarMensajes();
     if (materia.id === undefined || !confirm(`¿Quitar el profesor de ${materia.nombreMateria} (Grupo ${materia.grupo})?`)) return;
@@ -171,8 +218,9 @@ export class MateriasAdmin implements OnInit {
   }
 
   /**
-   * Valida el formulario (nombre, y inicio y fin completos en cada día con clase, al menos un día) y crea
-   * la materia. Si sale bien, limpia el formulario y recarga la lista; si no, muestra el mensaje del back.
+   * Valida el formulario (asignatura elegida, y inicio y fin completos en cada día con clase, al menos un día) y
+   * guarda el grupo: si hay un grupo en edición lo actualiza; si no, crea uno nuevo. Si sale bien, limpia el formulario y
+   * recarga la lista; si no, muestra el mensaje del back.
    */
   crearMateria(): void {
     this.limpiarMensajes();
@@ -203,9 +251,9 @@ export class MateriasAdmin implements OnInit {
   }
 
   /**
-   * Asigna a la materia el profesor elegido en su desplegable. Muestra el mensaje del back.
+   * Asigna al grupo el profesor elegido en su desplegable (si ya tenía otro, lo reemplaza). Muestra el mensaje del back.
    *
-   * @param materia materia a la que se asigna el profesor
+   * @param materia grupo al que se asigna el profesor
    */
   asignarProfesor(materia: MateriaDTO): void {
     this.limpiarMensajes();
@@ -224,6 +272,11 @@ export class MateriasAdmin implements OnInit {
     });
   }
 
+  /**
+   * Elimina un grupo después de pedir confirmación. También se borran sus inscripciones.
+   *
+   * @param materia grupo a eliminar
+   */
   eliminarGrupo(materia: MateriaDTO): void {
     this.limpiarMensajes();
     if (materia.id === undefined || !confirm(`¿Eliminar ${materia.nombreMateria} (Grupo ${materia.grupo})? Se borrarán también sus inscripciones.`)) return;

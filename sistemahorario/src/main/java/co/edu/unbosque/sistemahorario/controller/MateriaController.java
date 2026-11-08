@@ -24,9 +24,9 @@ import co.edu.unbosque.sistemahorario.service.UserDetailsServiceImpl;
 /**
  * Controlador REST de materias ({@code /materia}).
  * <p>
- * En este sistema cada {@code Materia} representa <b>un grupo concreto</b> de una asignatura
- * (la pareja nombre + grupo es única). Además de su CRUD, este controlador expone las
- * operaciones de horario: asignar profesor, inscribir, desinscribir y mover estudiantes.
+ * En este sistema cada {@code Materia} representa <b>un grupo concreto</b> de una {@code Asignatura} del
+ * catálogo (la pareja asignatura + grupo es única). Además de su CRUD, este controlador expone las
+ * operaciones de horario: asignar y quitar profesor, inscribir, desinscribir y mover estudiantes.
  * <p>
  * Permisos: listar lo puede hacer cualquier usuario autenticado; inscribir y desinscribir,
  * ADMIN y ESTUDIANTE (el estudiante solo sobre sí mismo); todo lo demás, solo ADMIN.
@@ -46,16 +46,14 @@ public class MateriaController {
 	}
 	
 	/**
-	 * Crea un grupo de una materia.
+	 * Crea un grupo de una asignatura del catálogo.
 	 *
-	 * @param inicio        hora de inicio de la clase de lunes a viernes (5 valores; {@code -1} = sin clase ese día)
-	 * @param fin           hora de fin de la clase de lunes a viernes (5 valores; {@code -1} = sin clase ese día)
-	 * @param nombreMateria nombre de la materia
-	 * @param carrera       carrera a la que pertenece
-	 * @param semestre      semestre de la materia (1 a 10)
-	 * @param grupo         número de grupo (por defecto 1)
-	 * @return 201 si se creó; 406 si el nombre tiene formato inválido; 409 si ya existe ese grupo
-	 *         de la materia; 400 si el semestre, el horario o el grupo no son válidos; 500 en otro caso
+	 * @param inicio       hora de inicio de la clase de lunes a viernes (5 valores; {@code -1} = sin clase ese día)
+	 * @param fin          hora de fin de la clase de lunes a viernes (5 valores; {@code -1} = sin clase ese día)
+	 * @param idAsignatura identificador de la asignatura en el catálogo
+	 * @param grupo        número de grupo (por defecto 1)
+	 * @return 201 si se creó; 404 si la asignatura no existe en el catálogo; 409 si ya existe ese grupo
+	 *         de la asignatura; 400 si el horario o el número de grupo no son válidos; 500 en otro caso
 	 */
 	@PostMapping("/crear")
 	public ResponseEntity<String> crearMateria (@RequestParam int[] inicio, @RequestParam int[] fin, @RequestParam Long idAsignatura, @RequestParam(defaultValue = "1") int grupo){
@@ -81,8 +79,12 @@ public class MateriaController {
 	
 	
 	/**
-	 * Lista todas las materias (grupos) con su profesor asignado y los ids de los estudiantes inscritos.
+	 * Lista las materias (grupos) con su profesor asignado y los ids de los estudiantes inscritos.
+	 * <p>
+	 * Si quien consulta es un estudiante, solo recibe los grupos que le corresponden por su carrera y su semestre
+	 * (ver {@code MateriaService.getAllParaEstudiante}); cualquier otro rol recibe todos.
 	 *
+	 * @param auth usuario autenticado (lo inyecta Spring Security a partir del token)
 	 * @return 200 con la lista de {@link MateriaDTO}
 	 */
 	@GetMapping("/mostrartodo")
@@ -114,21 +116,19 @@ public class MateriaController {
 	
 	
 	/**
-	 * Actualiza una materia (grupo).
+	 * Actualiza un grupo.
 	 * <p>
-	 * No se permite modificar una materia que ya tiene estudiantes inscritos, para no dejarles
+	 * No se permite modificar un grupo que ya tiene estudiantes inscritos, para no dejarles
 	 * un horario distinto al que eligieron. Si cambia el horario, se le quita el profesor asignado.
 	 *
-	 * @param inicio        nueva hora de inicio por día (5 valores; {@code -1} = sin clase)
-	 * @param fin           nueva hora de fin por día (5 valores; {@code -1} = sin clase)
-	 * @param nombreMateria nuevo nombre
-	 * @param carrera       nueva carrera
-	 * @param semestre      nuevo semestre (1 a 10)
-	 * @param grupo         nuevo número de grupo
-	 * @param id            identificador de la materia a modificar
-	 * @return 200 si se actualizó; 406 si el nombre es inválido; 409 si ya existe ese grupo o si la
-	 *         materia tiene estudiantes inscritos; 400 si semestre, horario o grupo no son válidos;
-	 *         404 si no existe; 500 en otro caso
+	 * @param inicio       nueva hora de inicio por día (5 valores; {@code -1} = sin clase)
+	 * @param fin          nueva hora de fin por día (5 valores; {@code -1} = sin clase)
+	 * @param idAsignatura nueva asignatura del catálogo
+	 * @param grupo        nuevo número de grupo
+	 * @param id           identificador del grupo a modificar
+	 * @return 200 si se actualizó; 404 si la asignatura no existe en el catálogo o no se encontró el grupo;
+	 *         409 si ya existe ese grupo o si el grupo tiene estudiantes inscritos;
+	 *         400 si el horario o el número de grupo no son válidos; 500 en otro caso
 	 */
 	@PutMapping("/actualizar")
 	public ResponseEntity<String> actualizarMateria(@RequestParam int[] inicio, @RequestParam int[] fin, @RequestParam Long idAsignatura, @RequestParam(defaultValue = "1") int grupo, @RequestParam Long id){
@@ -158,12 +158,12 @@ public class MateriaController {
 	}
 	
 	/**
-	 * Asigna un profesor a una materia.
+	 * Asigna un profesor a un grupo. Si el grupo ya tenía otro profesor, se reemplaza.
 	 *
 	 * @param idProfesor identificador del profesor
-	 * @param idMateria  identificador de la materia
-	 * @return 202 si se asignó; 409 si la materia ya tiene profesor o si el horario del profesor
-	 *         se cruza con el de la materia; 404 si no se encontró el profesor o la materia; 500 en otro caso
+	 * @param idMateria  identificador del grupo
+	 * @return 202 si se asignó; 409 si ese mismo profesor ya está asignado o si su horario se cruza con
+	 *         el del grupo; 404 si no se encontró el profesor o el grupo; 500 en otro caso
 	 */
 	@PutMapping("/asignarprofesor")
 	public ResponseEntity<String> asignarProfesor(@RequestParam Long idProfesor, @RequestParam Long idMateria) {
@@ -183,6 +183,12 @@ public class MateriaController {
 		}
 	}
 
+	/**
+	 * Quita el profesor asignado a un grupo.
+	 *
+	 * @param idMateria identificador del grupo
+	 * @return 200 si se quitó; 409 si el grupo no tenía profesor; 404 si no se encontró el grupo; 500 en otro caso
+	 */
 	@PutMapping("/quitarprofesor")
 	public ResponseEntity<String> quitarProfesor(@RequestParam Long idMateria) {
 		int status = matServ.quitarProfesor(idMateria);
@@ -200,17 +206,17 @@ public class MateriaController {
 	}
 
 	/**
-	 * Inscribe un estudiante en una materia (grupo).
+	 * Inscribe un estudiante en un grupo.
 	 * <p>
 	 * Un ESTUDIANTE solo puede inscribirse a sí mismo; el ADMIN puede inscribir a cualquiera.
-	 * Se rechaza si ya está inscrito, si ya cursa otro grupo de la misma materia o si el horario
-	 * se cruza con otra de sus materias.
+	 * Se rechaza si ya está inscrito, si ya cursa otro grupo de la misma asignatura, si el horario
+	 * se cruza con otra de sus materias o si la asignatura no corresponde a su carrera o a su semestre.
 	 *
 	 * @param idEstudiante identificador del estudiante
-	 * @param idMateria    identificador de la materia
+	 * @param idMateria    identificador del grupo
 	 * @param auth         usuario autenticado (lo inyecta Spring Security a partir del token)
 	 * @return 202 si quedó inscrito; 409 si hay conflicto; 403 si un estudiante intenta modificar
-	 *         el horario de otro; 404 si no se encontró el estudiante o la materia
+	 *         el horario de otro; 404 si no se encontró el estudiante o el grupo
 	 */
 	@PutMapping("/inscribirestudiante")
 	public ResponseEntity<String> inscribirEstudiante(@RequestParam Long idEstudiante, @RequestParam Long idMateria, Authentication auth) {
@@ -270,10 +276,10 @@ public class MateriaController {
 	}
 
 	/**
-	 * Mueve un estudiante de un grupo a otro de la <b>misma</b> materia (reubicación).
+	 * Mueve un estudiante de un grupo a otro de la <b>misma</b> asignatura (reubicación).
 	 * <p>
 	 * Solo la puede usar el ADMIN. Se rechaza si el estudiante no está en el grupo origen, si
-	 * los grupos no son de la misma materia, si ya está en el destino o si el horario del destino
+	 * los grupos no son de la misma asignatura, si ya está en el destino o si el horario del destino
 	 * se cruza con otra materia suya.
 	 *
 	 * @param idEstudiante     identificador del estudiante

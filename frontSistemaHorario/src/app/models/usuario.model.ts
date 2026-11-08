@@ -19,11 +19,14 @@ export interface AdminDTO extends UsuarioDTO {}
 
 
 /**
- * Estudiante, con los ids de las materias en las que está inscrito.
+ * Estudiante, con su carrera, su semestre y los ids de las materias en las que está inscrito.
  */
 export interface EstudianteDTO extends UsuarioDTO {
   nombre: string;
   carrera?: Carrera | null;
+  /**
+   * Semestre que cursa el estudiante (de 1 a 12).
+   */
   semestre?: number | null;
   listaIdMateriasInscritas: number[];
 }

@@ -21,7 +21,7 @@ import co.edu.unbosque.sistemahorario.util.enums.Carrera;
  * Controlador REST de estudiantes ({@code /estudiante}).
  * <p>
  * Listar estudiantes lo pueden hacer ADMIN y PROFESOR; crear, actualizar y eliminar
- * es exclusivo de ADMIN (ver {@code SecurityConfig}).
+ * es exclusivo de ADMIN (ver {@code SecurityConfig}). Cada estudiante tiene carrera y semestre.
  */
 @RestController
 @RequestMapping("/estudiante")
@@ -42,8 +42,10 @@ public class EstudianteController {
 	 * @param contrasenia contraseña en texto plano; se guarda cifrada con BCrypt
 	 * @param correo      correo institucional (único en todo el sistema)
 	 * @param carrera     carrera que cursa
+	 * @param semestre    semestre que cursa (de 1 a 12)
 	 * @return 201 si se creó; 406 si el correo o la contraseña tienen formato inválido;
-	 *         400 si el nombre es inválido o el correo ya existe; 500 en cualquier otro caso
+	 *         400 si el nombre es inválido, el correo ya existe o el semestre no está entre 1 y 12;
+	 *         500 en cualquier otro caso
 	 */
 	@PostMapping("/crear")
 	public ResponseEntity<String> crearEstudiante(@RequestParam String nombre, @RequestParam String contrasenia, @RequestParam String correo, @RequestParam Carrera carrera, @RequestParam short semestre){
@@ -112,10 +114,11 @@ public class EstudianteController {
 	 * @param contrasenia nueva contraseña; si no se envía se conserva la actual
 	 * @param correo      nuevo correo
 	 * @param carrera     nueva carrera
+	 * @param semestre    nuevo semestre (de 1 a 12)
 	 * @param id          identificador del estudiante a modificar
 	 * @return 200 si se actualizó; 406 si el formato del correo o la contraseña es inválido;
-	 *         400 si el nombre es inválido o el correo ya está en uso; 404 si no existe;
-	 *         500 en cualquier otro caso
+	 *         400 si el nombre es inválido, el correo ya está en uso o el semestre no está entre 1 y 12;
+	 *         404 si no existe; 500 en cualquier otro caso
 	 */
 	@PutMapping("/actualizar")
 	public ResponseEntity<String> actualizarEstudiante(@RequestParam String nombre, @RequestParam(required = false) String contrasenia, @RequestParam String correo, @RequestParam Carrera carrera, @RequestParam short semestre, @RequestParam Long id){

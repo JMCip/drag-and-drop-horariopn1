@@ -47,7 +47,7 @@ public class SecurityConfig {
      * <li>Cualquier usuario autenticado: listar materias y profesores.</li>
      * <li>ADMIN y PROFESOR: listar estudiantes.</li>
      * <li>ADMIN y ESTUDIANTE: inscribir y desinscribir (el estudiante solo sobre sí mismo, lo valida {@code MateriaController}).</li>
-     * <li>Solo ADMIN: el resto de {@code /admin}, {@code /estudiante}, {@code /profesor} y {@code /materia}.</li>
+     * <li>Solo ADMIN: el resto de {@code /admin}, {@code /estudiante}, {@code /profesor}, {@code /materia} y {@code /asignatura}.</li>
      * </ul>
      * Sin token o con token vencido se responde 401. CSRF está desactivado porque no hay sesiones.
      *

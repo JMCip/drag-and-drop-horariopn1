@@ -36,20 +36,20 @@ export class CronogramaHorario implements OnInit, OnDestroy {
   private subs = new Subscription();
 
   /**
-   * Columnas de la grilla.
-   */
-  /**
-   * Se emite cuando el back confirma que el horario se guardó.
-   */
-  /**
-   * Se emite con la lista nueva cada vez que se agrega o quita una sección.
-   */
-  /**
    * Secciones que están en la grilla.
    */
   @Input() seccionesUbicadas: SeccionModel[] = [];
+  /**
+   * Se emite con la lista nueva cada vez que se agrega o quita una sección.
+   */
   @Output() seccionesUbicadasChange = new EventEmitter<SeccionModel[]>();
+  /**
+   * Se emite cuando el back confirma que el horario se guardó.
+   */
   @Output() horarioGuardado = new EventEmitter<SeccionModel[]>();
+  /**
+   * Columnas de la grilla.
+   */
 
   dias: ('Lun' | 'Mar' | 'Mié' | 'Jue' | 'Vie' | 'Sáb')[] = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
   /**

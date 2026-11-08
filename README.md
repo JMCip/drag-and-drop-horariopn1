@@ -1,6 +1,6 @@
 # Sistema de Horarios con Drag and Drop
 
-Aplicación web para gestionar horarios académicos. Los **estudiantes** arman su horario arrastrando las secciones (materia + grupo) hasta una grilla semanal; los **profesores** consultan sus materias, grupos y estudiantes; y el **administrador** gestiona usuarios, materias, profesores asignados y reubicaciones de estudiantes entre grupos.
+Aplicación web para gestionar horarios académicos. Los **estudiantes** arman su horario arrastrando las secciones (materia + grupo) hasta una grilla semanal, viendo solo las materias de su carrera y semestre; los **profesores** consultan sus materias, grupos y estudiantes; y el **administrador** gestiona usuarios, grupos de materias del catálogo, profesores asignados y reubicaciones de estudiantes entre grupos.
 
 El sistema valida automáticamente los cruces de horario, tanto para estudiantes como para profesores.
 
@@ -36,6 +36,7 @@ El sistema valida automáticamente los cruces de horario, tanto para estudiantes
 | Empaquetado | WAR (`ServletInitializer`) |
 | **Front** (`frontSistemaHorario`) | Angular 22 (componentes standalone), TypeScript, RxJS, Angular CDK, Font Awesome 6 |
 | Pruebas del front | Vitest + jsdom |
+| PDF del horario (front) | jsPDF y jspdf-autotable (se cargan solo al pulsar el botón de descarga) |
 | **Base de datos** | MySQL (servicio online en Aiven, compartido por el equipo) |
 
 ---
@@ -47,9 +48,8 @@ drag-and-drop-horariopn1/
 ├── sistemahorario/              # Back-end (API REST, puerto 8080)
 │   ├── src/main/java/co/edu/unbosque/sistemahorario/
 │   ├── src/main/resources/application.properties
-│   ├── base_de_datos.sql        # Crea tablas y el admin inicial
-│   ├── materias_ejemplo.sql     # Ejemplo para crear materias desde Workbench
-│   ├── migracion_grupos_carrera.sql
+│   ├── base_de_datos.sql        # Crea las tablas y el admin inicial
+│   ├── catalogo_materias.sql    # Carga el catálogo de materias por carrera y semestre
 │   └── pom.xml
 ├── frontSistemaHorario/         # Front-end Angular (puerto 4200)
 │   └── src/app/
@@ -62,9 +62,10 @@ drag-and-drop-horariopn1/
 
 | Script | Para qué sirve |
 |--------|----------------|
-| `base_de_datos.sql` | Crea las tablas y el administrador inicial. **Se corre una sola vez** y la base compartida ya lo tiene, así que no hay que volver a ejecutarlo. |
-| `materias_ejemplo.sql` | Plantilla para insertar materias directamente en la base (explica cómo se guardan `inicio` y `fin`, que son `int[]` serializados en binario). |
-| `migracion_grupos_carrera.sql` | Agrega la columna `grupo` a `materia` y `carrera` a `estudiante` en bases creadas antes de ese cambio. Una base nueva no lo necesita. |
+| `base_de_datos.sql` | Crea las tablas (incluidas `asignatura` y `plan_estudio`) y el administrador inicial. **Se corre una sola vez** y la base compartida ya lo tiene, así que no hay que volver a ejecutarlo. |
+| `catalogo_materias.sql` | Carga el catálogo: 349 asignaturas distintas y 460 filas de plan de estudios (qué materia va en qué semestre de cada carrera). Se corre una sola vez, después de crear las tablas. |
+
+Si algún día se crea una base nueva (por ejemplo local), se ejecuta primero `base_de_datos.sql` y después `catalogo_materias.sql`.
 
 ---
 
@@ -101,9 +102,9 @@ Luego abrir <http://localhost:4200>.
 
 | Rol | Qué puede hacer |
 |-----|-----------------|
-| **ADMIN** | Crear, editar y eliminar usuarios (estudiantes, profesores y administradores) y materias; asignar profesor a una materia; inscribir o desinscribir a cualquier estudiante; mover estudiantes entre grupos de la misma materia. |
+| **ADMIN** | Crear, editar y eliminar usuarios (estudiantes, profesores y administradores) y grupos de materias; cambiar el semestre de un estudiante; asignar, reemplazar o quitar el profesor de un grupo; inscribir o desinscribir a cualquier estudiante; mover estudiantes entre grupos de la misma asignatura; consultar el catálogo de asignaturas. |
 | **PROFESOR** | Ver su horario y sus materias con los grupos y estudiantes inscritos. Puede consultar materias, profesores y estudiantes. |
-| **ESTUDIANTE** | Armar su horario con drag and drop e inscribir o desinscribir **solo sus propias materias**. Puede consultar materias y profesores. |
+| **ESTUDIANTE** | Armar su horario con drag and drop e inscribir o desinscribir **solo sus propias materias**, y descargarlo en JSON o PDF. Solo ve los grupos de asignaturas de **su carrera, del semestre 1 hasta el suyo**. Puede consultar profesores. |
 
 ---
 
@@ -113,11 +114,11 @@ Paquete base: `co.edu.unbosque.sistemahorario`
 
 | Paquete | Contenido |
 |---------|-----------|
-| `controller` | `AuthController`, `AdminController`, `EstudianteController`, `ProfesorController`, `MateriaController` |
-| `service` | Lógica de negocio: `AdminService`, `EstudianteService`, `ProfesorService`, `MateriaService` y `UserDetailsServiceImpl` (carga de usuarios y roles para Spring Security). `CRUDOPeration` es la interfaz común de los CRUD. |
-| `repository` | Interfaces JPA: `AdminRepository`, `EstudianteRepository`, `ProfesorRepository`, `MateriaRepository` |
-| `entity` | Entidades JPA: `Usuario` (abstracta), `Admin`, `Profesor`, `Estudiante`, `Materia` |
-| `dto` | Objetos de transferencia: `AdminDTO`, `EstudianteDTO`, `ProfesorDTO`, `MateriaDTO`, `UsuarioDTO`, `AuthResponse` |
+| `controller` | `AuthController`, `AdminController`, `EstudianteController`, `ProfesorController`, `MateriaController`, `AsignaturaController` |
+| `service` | Lógica de negocio: `AdminService`, `EstudianteService`, `ProfesorService`, `MateriaService`, `AsignaturaService` (solo consulta) y `UserDetailsServiceImpl` (carga de usuarios y roles para Spring Security). `CRUDOPeration` es la interfaz común de los CRUD. |
+| `repository` | Interfaces JPA: `AdminRepository`, `EstudianteRepository`, `ProfesorRepository`, `MateriaRepository`, `AsignaturaRepository` |
+| `entity` | Entidades JPA: `Usuario` (abstracta), `Admin`, `Profesor`, `Estudiante`, `Materia`, `Asignatura`, `PlanEstudio` |
+| `dto` | Objetos de transferencia: `AdminDTO`, `EstudianteDTO`, `ProfesorDTO`, `MateriaDTO`, `AsignaturaDTO`, `PlanEstudioDTO`, `UsuarioDTO`, `AuthResponse` |
 | `security` | `SecurityConfig` (reglas de acceso), `JwtRequestFilter` (valida el token en cada petición), `CorsConfig`, `OpenApiConfig` |
 | `util` | `JwtUtil` (genera y valida tokens), `enums/Carrera` y `exceptions/` (excepciones de validación y `LanzadorDeExcepcion`, con las reglas de formato y horario) |
 
@@ -128,7 +129,7 @@ Flujo típico de una petición: `controller` → `service` → `repository` → 
 ## Autenticación (JWT)
 
 1. El cliente llama a `POST /api/auth/login` con `correo` y `contrasenia`.
-2. Si son correctos, el back responde con un `AuthResponse`: `id`, `token`, `rol`, `nombre` y `correo`.
+2. Si son correctos, el back responde con un `AuthResponse`: `id`, `token`, `rol`, `nombre` y `correo`. Si el usuario es un estudiante, también incluye su `carrera` y su `semestre`.
 3. En las siguientes peticiones el cliente envía el token en la cabecera:
 
    ```
@@ -157,10 +158,10 @@ Todos los parámetros se envían como **parámetros de la petición** (`@Request
 | Ruta | Quién puede acceder |
 |------|---------------------|
 | `/api/auth/**`, `/swagger-ui/**`, `/v3/api-docs/**`, `/error` | Público |
-| `GET /materia/mostrartodo`, `GET /profesor/mostrartodo` | Cualquier usuario autenticado |
+| `GET /materia/mostrartodo`, `GET /profesor/mostrartodo` | Cualquier usuario autenticado (en `/materia/mostrartodo`, un estudiante recibe solo los grupos de su carrera hasta su semestre) |
 | `GET /estudiante/mostrartodo` | ADMIN, PROFESOR |
 | `PUT /materia/inscribirestudiante`, `PUT /materia/desinscribirestudiante` | ADMIN, ESTUDIANTE (el estudiante solo sobre sí mismo) |
-| Cualquier otra ruta de `/admin`, `/estudiante`, `/profesor`, `/materia` | Solo ADMIN |
+| Cualquier otra ruta de `/admin`, `/estudiante`, `/profesor`, `/materia`, `/asignatura` | Solo ADMIN |
 
 ### Autenticación — `/api/auth`
 
@@ -181,9 +182,9 @@ Todos los parámetros se envían como **parámetros de la petición** (`@Request
 
 | Método | Ruta | Parámetros | Descripción |
 |--------|------|------------|-------------|
-| POST | `/estudiante/crear` | `nombre`, `correo`, `contrasenia`, `carrera` | Crea un estudiante. |
+| POST | `/estudiante/crear` | `nombre`, `correo`, `contrasenia`, `carrera`, `semestre` (1 a 12) | Crea un estudiante. |
 | GET | `/estudiante/mostrartodo` | — | Lista los estudiantes. |
-| PUT | `/estudiante/actualizar` | `id`, `nombre`, `correo`, `carrera`, `contrasenia` (opcional) | Actualiza un estudiante. |
+| PUT | `/estudiante/actualizar` | `id`, `nombre`, `correo`, `carrera`, `semestre` (1 a 12), `contrasenia` (opcional) | Actualiza un estudiante. |
 | DELETE | `/estudiante/eliminar` | `id` | Elimina un estudiante. |
 
 ### Profesores — `/profesor`
@@ -195,31 +196,43 @@ Todos los parámetros se envían como **parámetros de la petición** (`@Request
 | PUT | `/profesor/actualizar` | `id`, `nombre`, `correo`, `contrasenia` (opcional) | Actualiza un profesor. |
 | DELETE | `/profesor/eliminar` | `id` | Elimina un profesor. |
 
-### Materias — `/materia`
+### Materias (grupos) — `/materia`
+
+Cada fila de `materia` es **un grupo** de una asignatura del catálogo.
 
 | Método | Ruta | Parámetros | Descripción |
 |--------|------|------------|-------------|
-| POST | `/materia/crear` | `nombreMateria`, `carrera`, `semestre`, `inicio[]`, `fin[]`, `grupo` (por defecto 1) | Crea una materia (un grupo de una materia). |
-| GET | `/materia/mostrartodo` | — | Lista las materias. |
-| PUT | `/materia/actualizar` | `id` + los mismos parámetros de `crear` | Actualiza una materia. |
-| DELETE | `/materia/eliminar` | `id` | Elimina una materia. |
-| PUT | `/materia/asignarprofesor` | `idProfesor`, `idMateria` | Asigna un profesor a la materia. |
-| PUT | `/materia/inscribirestudiante` | `idEstudiante`, `idMateria` | Inscribe un estudiante en la materia. |
+| POST | `/materia/crear` | `idAsignatura`, `inicio[]`, `fin[]`, `grupo` (por defecto 1) | Crea un grupo de una asignatura del catálogo. |
+| GET | `/materia/mostrartodo` | — | Lista los grupos con su profesor y los ids de los estudiantes inscritos. Un estudiante solo recibe los de su carrera hasta su semestre. |
+| PUT | `/materia/actualizar` | `id` + los mismos parámetros de `crear` | Actualiza un grupo (no se permite si ya tiene estudiantes inscritos). |
+| DELETE | `/materia/eliminar` | `id` | Elimina un grupo. |
+| PUT | `/materia/asignarprofesor` | `idProfesor`, `idMateria` | Asigna un profesor al grupo; si ya tenía otro, lo reemplaza. |
+| PUT | `/materia/quitarprofesor` | `idMateria` | Quita el profesor del grupo. |
+| PUT | `/materia/inscribirestudiante` | `idEstudiante`, `idMateria` | Inscribe un estudiante en el grupo. |
 | PUT | `/materia/desinscribirestudiante` | `idEstudiante`, `idMateria` | Quita la inscripción. |
-| PUT | `/materia/moverestudiante` | `idEstudiante`, `idMateriaOrigen`, `idMateriaDestino` | Mueve un estudiante a otro grupo de la misma materia. |
+| PUT | `/materia/moverestudiante` | `idEstudiante`, `idMateriaOrigen`, `idMateriaDestino` | Mueve un estudiante a otro grupo de la misma asignatura. |
+
+### Catálogo — `/asignatura`
+
+| Método | Ruta | Parámetros | Descripción |
+|--------|------|------------|-------------|
+| GET | `/asignatura/mostrartodo` | — | Lista el catálogo de asignaturas con sus planes (carrera y semestre), ordenado por nombre. Solo ADMIN. |
+
+El catálogo es de solo lectura desde la aplicación: se carga con `catalogo_materias.sql`.
 
 Respuestas de inscripción, desinscripción y movimiento:
 
 | Operación | Código | Significado |
 |-----------|--------|-------------|
 | Inscribir | 202 | Estudiante inscrito con éxito. |
-| | 409 | Ya está inscrito en esa materia, ya está inscrito en otro grupo de la misma materia, o el horario se cruza con otra materia suya. |
+| | 409 | Ya está inscrito en ese grupo, ya cursa otro grupo de la misma asignatura, el horario se cruza con otra materia suya, o la asignatura no corresponde a su carrera o a su semestre. |
 | | 403 | Un estudiante intentó modificar el horario de otro. |
-| | 404 | No se encontró el estudiante o la materia. |
+| | 404 | No se encontró el estudiante o el grupo. |
 | Desinscribir | 200 / 409 / 404 | Éxito / no estaba inscrito / no se encontró. |
 | Mover | 200 | Estudiante movido con éxito. |
-| | 409 | No está en el origen, los grupos no son de la misma materia, ya está en el destino, o el destino se cruza con otra materia suya. |
-| Asignar profesor | — | Falla si la materia ya tiene profesor o si choca con el horario del profesor. |
+| | 409 | No está en el origen, los grupos no son de la misma asignatura, ya está en el destino, o el destino se cruza con otra materia suya. |
+| Asignar profesor | 202 / 409 / 404 | Asignado / ya es ese mismo profesor o choca con su horario / no se encontró. |
+| Quitar profesor | 200 / 409 / 404 | Quitado / el grupo no tenía profesor / no se encontró el grupo. |
 
 > Los endpoints `POST /admin/iniciarsesion`, `/estudiante/iniciarsesion` y `/profesor/iniciarsesion` existen en el código, pero el inicio de sesión real del sistema es `POST /api/auth/login`.
 
@@ -236,6 +249,8 @@ erDiagram
     USUARIO ||--o| ADMIN : "es"
     USUARIO ||--o| PROFESOR : "es"
     USUARIO ||--o| ESTUDIANTE : "es"
+    ASIGNATURA ||--o{ PLAN_ESTUDIO : "aparece en"
+    ASIGNATURA ||--o{ MATERIA : "tiene grupos"
     PROFESOR ||--o{ MATERIA : "dicta"
     MATERIA ||--o{ MATERIA_ESTUDIANTE : "tiene"
     ESTUDIANTE ||--o{ MATERIA_ESTUDIANTE : "cursa"
@@ -256,12 +271,21 @@ erDiagram
         bigint id PK, FK
         varchar nombre
         enum carrera
+        smallint semestre
+    }
+    ASIGNATURA {
+        bigint id PK
+        varchar nombre UK
+    }
+    PLAN_ESTUDIO {
+        bigint id PK
+        bigint asignatura_id FK
+        enum carrera
+        smallint semestre
     }
     MATERIA {
         bigint id PK
-        varchar nombre_materia
-        enum carrera
-        smallint semestre
+        bigint asignatura_id FK
         int grupo
         varbinary inicio
         varbinary fin
@@ -274,9 +298,10 @@ erDiagram
 ```
 
 - **Herencia:** `Usuario` es una entidad abstracta con estrategia `JOINED`. `Admin`, `Profesor` y `Estudiante` comparten el `id` de `usuario`.
-- **Materia = un grupo.** Cada fila de `materia` es un grupo concreto. La combinación (`nombre_materia`, `grupo`) es única.
+- **Catálogo:** `Asignatura` es una materia del catálogo y existe una sola vez, aunque la vean varias carreras. `PlanEstudio` dice en qué semestre va esa asignatura en cada carrera; la combinación (asignatura, carrera, semestre) es única.
+- **Materia = un grupo.** Cada fila de `materia` es un grupo concreto de una asignatura, con su horario y su profesor. La combinación (`asignatura_id`, `grupo`) es única. El nombre, la carrera y el semestre no se guardan en `materia`: salen de la asignatura y de sus planes.
 - **Horario:** `inicio` y `fin` son arreglos de 5 enteros (lunes a viernes) con la hora de inicio y de fin de cada día. El valor **`-1`** significa que no hay clase ese día.
-- **Inscripciones:** relación muchos a muchos entre materia y estudiante en la tabla `materia_estudiante`.
+- **Inscripciones:** relación muchos a muchos entre materia (grupo) y estudiante en la tabla `materia_estudiante`.
 - `spring.jpa.hibernate.ddl-auto=validate`: Hibernate **no crea ni modifica tablas**, solo verifica que coincidan con las entidades. Los cambios de esquema se hacen con scripts SQL.
 
 ---
@@ -291,14 +316,16 @@ erDiagram
 
 **Cruces de horario:** no se puede inscribir un estudiante ni asignar un profesor si la materia se cruza con otra que ya tenga.
 
-**Un grupo por materia:** un estudiante no puede estar inscrito en dos grupos de la misma materia.
+**Un grupo por asignatura:** un estudiante no puede estar inscrito en dos grupos de la misma asignatura.
+
+**Carrera y semestre del estudiante:** un estudiante solo puede ver e inscribir grupos de asignaturas que estén en el plan de su carrera, del semestre 1 hasta el suyo. El back lo valida también al inscribir.
 
 **Formato de datos:**
 
 | Campo | Regla |
 |-------|-------|
 | Nombre de persona | Mínimo 2 caracteres; solo letras, espacios, tildes y ñ. |
-| Nombre de materia | Solo letras, números y espacios. |
+| Semestre del estudiante | Entre 1 y 12. |
 | Correo | Con formato válido y dominio `unbosque.edu.co` o `gmail.com`. |
 | Contraseña | Mínimo 8 caracteres, con letras, números y símbolos. Se guarda cifrada con BCrypt. |
 | Correo repetido | No se permite: el correo es único en todo el sistema. |
@@ -312,14 +339,14 @@ Aplicación Angular con componentes standalone. Ruta base: `frontSistemaHorario/
 | Carpeta | Contenido |
 |---------|-----------|
 | `login/` | Pantalla de inicio de sesión. |
-| `vista-estudiante/` | `sidebar-secciones` (secciones disponibles, arrastrables), `cronograma-horario` (grilla donde se sueltan) y `horario-inscrito`. |
+| `vista-estudiante/` | `sidebar-secciones` (secciones disponibles, arrastrables), `cronograma-horario` (grilla donde se sueltan) y `horario-inscrito` (con descarga en JSON y PDF). |
 | `vista-profesor/` | `cronograma-profesor` y `materias-grupos` (materias, grupos y estudiantes). |
-| `vista-admin/` | `dashboard-admin`, `materias-admin`, `registro-usuarios` y `reubicaciones-admin`. |
+| `vista-admin/` | `dashboard-admin` (totales, cambio de semestre y eliminación de usuarios), `materias-admin` (grupos, catálogo y profesores), `registro-usuarios` y `reubicaciones-admin`. |
 | `shared/topbar/` | Barra superior con pestañas, común a las tres vistas. |
-| `services/` | Comunicación con el back: `auth`, `admin`, `estudiante`, `profesor`, `materia` y `horario`. |
+| `services/` | Comunicación con el back: `auth`, `admin`, `estudiante`, `profesor`, `materia`, `asignatura` y `horario`. |
 | `guards/` | `role.guard.ts`: `estudianteGuard`, `profesorGuard` y `adminGuard`. |
 | `interceptors/` | `auth.interceptor.ts`: agrega el token y cierra la sesión si el back responde 401. |
-| `models/` | Interfaces y enums (`Role`, `Carrera`, materia, sección, usuario, validación). |
+| `models/` | Interfaces y enums (`Role`, `Carrera`, materia, asignatura, sección, usuario, validación). |
 
 ### Rutas
 
@@ -342,7 +369,7 @@ La ruta vacía y cualquier ruta desconocida redirigen a `/login`.
 
 ### Drag and drop
 
-Se implementa con el API nativo de HTML5: en `sidebar-secciones` cada sección es `draggable` y dispara `dragstart`; en `cronograma-horario` la grilla recibe el evento `drop`. Antes de ubicar una sección se valida el cruce con las demás (`HorarioService.validarChoque`), y al guardar se libera el horario anterior y se inscriben las nuevas secciones.
+Se implementa con el API nativo de HTML5: en `sidebar-secciones` cada sección es `draggable` y dispara `dragstart`; en `cronograma-horario` la grilla recibe el evento `drop`. Antes de ubicar una sección se valida el cruce con las demás (`HorarioService.validarChoque`), y al guardar se libera el horario anterior y se inscriben las nuevas secciones. El estudiante también puede deshacer con Ctrl+Z y descargar su horario inscrito en JSON o en PDF.
 
 ---
 

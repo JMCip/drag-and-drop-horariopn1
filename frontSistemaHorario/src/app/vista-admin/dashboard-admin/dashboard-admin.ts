@@ -12,6 +12,7 @@ import { ProfesorService } from '../../services/profesor.service';
 
 /**
  * Pestaña "Panel" del administrador: totales de usuarios y listados de estudiantes, profesores y materias.
+ * Desde aquí también se cambia el semestre de un estudiante y se eliminan estudiantes y profesores.
  */
 @Component({
   selector: 'app-dashboard-admin',
@@ -48,17 +49,29 @@ export class DashboardAdmin implements OnInit {
    * Cantidad de administradores.
    */
   totalAdmins = 0;
+  /**
+   * Semestres que se pueden elegir: del 1 al 12.
+   */
   semestres = Array.from({ length: 12 }, (_, i) => i + 1);
+  /**
+   * Semestre elegido en el desplegable de cada estudiante, indexado por id de estudiante.
+   */
   semestreEditado: Record<number, number | null> = {};
+  /**
+   * Mensaje de resultado (éxito o error) de la última acción del panel; `null` si no hay.
+   */
   mensaje: { exito: boolean; texto: string } | null = null;
 
   /**
-   * Carga en paralelo estudiantes, profesores, materias y el total de administradores.
+   * Al abrir el panel carga los datos con `cargar`.
    */
   ngOnInit(): void {
     this.cargar();
   }
 
+  /**
+   * Carga en paralelo estudiantes, profesores, materias y el total de administradores, y prepara el semestre editable de cada estudiante.
+   */
   private cargar(): void {
     forkJoin({
       estudiantes: this.estudianteService.getAll(),
@@ -82,10 +95,19 @@ export class DashboardAdmin implements OnInit {
     return this.estudiantes.length + this.profesores.length + this.totalAdmins;
   }
 
+  /**
+   * @param estudiante estudiante a mostrar
+   * @returns el nombre legible de su carrera, o "Sin carrera" 
+   */
   etiquetaCarrera(estudiante: EstudianteDTO): string {
     return estudiante.carrera ? ETIQUETAS_CARRERA[estudiante.carrera] : 'Sin carrera';
   }
 
+  /**
+   * Guarda el semestre elegido para un estudiante. Si el back lo rechaza (por ejemplo, un estudiante sin carrera) muestra su mensaje.
+   *
+   * @param estudiante estudiante a modificar
+   */
   guardarSemestre(estudiante: EstudianteDTO): void {
     const semestre = this.semestreEditado[estudiante.id ?? 0];
     if (estudiante.id === undefined || !semestre) return;
@@ -106,6 +128,11 @@ export class DashboardAdmin implements OnInit {
     });
   }
 
+  /**
+   * Elimina un estudiante después de pedir confirmación. También se borran sus inscripciones.
+   *
+   * @param estudiante estudiante a eliminar
+   */
   eliminarEstudiante(estudiante: EstudianteDTO): void {
     if (estudiante.id === undefined || !confirm(`¿Eliminar al estudiante ${estudiante.nombre}? Se borrarán también sus inscripciones.`)) return;
     this.estudianteService.deleteById(estudiante.id).subscribe({
@@ -114,6 +141,11 @@ export class DashboardAdmin implements OnInit {
     });
   }
 
+  /**
+   * Elimina un profesor después de pedir confirmación. Sus grupos quedan sin profesor asignado.
+   *
+   * @param profesor profesor a eliminar
+   */
   eliminarProfesor(profesor: ProfesorDTO): void {
     if (profesor.id === undefined || !confirm(`¿Eliminar al profesor ${profesor.nombre}? Sus grupos quedarán sin profesor asignado.`)) return;
     this.profesorService.deleteById(profesor.id).subscribe({
@@ -122,11 +154,22 @@ export class DashboardAdmin implements OnInit {
     });
   }
 
+  /**
+   * Muestra el mensaje de éxito y recarga los datos.
+   *
+   * @param texto mensaje que respondió el back
+   */
   private terminarEliminacion(texto: string): void {
     this.mensaje = { exito: true, texto };
     this.cargar();
   }
 
+  /**
+   * Muestra el mensaje de error que envió el back, o uno por defecto si no hay.
+   *
+   * @param err error HTTP recibido
+   * @param porDefecto mensaje a usar si el back no envió texto
+   */
   private mostrarError(err: { error?: unknown }, porDefecto: string): void {
     this.mensaje = { exito: false, texto: typeof err.error === 'string' && err.error ? err.error : porDefecto };
     this.cdr.markForCheck();

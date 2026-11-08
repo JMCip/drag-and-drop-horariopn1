@@ -21,10 +21,11 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 /**
- * Un <b>grupo</b> de una materia (tabla {@code materia}).
+ * Un <b>grupo</b> de una asignatura del catálogo (tabla {@code materia}).
  * <p>
  * No representa la asignatura en abstracto sino un grupo concreto: la pareja
- * ({@code nombreMateria}, {@code grupo}) es única. Cada grupo tiene su propio horario,
+ * ({@code asignatura}, {@code grupo}) es única. El nombre, la carrera y el semestre no se guardan aquí:
+ * vienen de la {@link Asignatura} y de sus planes de estudio. Cada grupo tiene su propio horario,
  * su profesor y sus estudiantes inscritos.
  * <p>
  * El horario se guarda en {@link #inicio} y {@link #fin}: arreglos de 5 posiciones
@@ -49,17 +50,33 @@ public class Materia {
 	 */
 	private int [] fin;
 
+	/**
+	 * Asignatura del catálogo a la que pertenece el grupo (columna {@code asignatura_id}, obligatoria).
+	 * De ahí salen el nombre, la carrera y el semestre.
+	 */
 	@ManyToOne(optional = false)
 	@JoinColumn(name = "asignatura_id", nullable = false)
 	private Asignatura asignatura;
 
+	/**
+	 * Número de grupo. Por defecto es 1 y no puede ser nulo.
+	 */
 	@Column(nullable = false)
 	private int grupo = 1;
 
+	/**
+	 * Profesor que dicta el grupo. Puede ser {@code null} mientras no se asigne uno
+	 * (la columna es {@code profesor_id}).
+	 */
 	@ManyToOne
 	@JoinColumn(name = "profesor_id")
 	private Profesor profesorAsignado;
 
+	/**
+	 * Estudiantes inscritos. Esta clase es la dueña de la relación muchos a muchos y
+	 * administra la tabla intermedia {@code materia_estudiante}. Se ignora al serializar a JSON
+	 * para evitar referencias circulares.
+	 */
 	@JsonIgnore
 	@BatchSize(size = 100)
 	@ManyToMany

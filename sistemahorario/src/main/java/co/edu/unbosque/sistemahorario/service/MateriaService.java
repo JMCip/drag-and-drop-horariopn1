@@ -24,10 +24,11 @@ import co.edu.unbosque.sistemahorario.util.exceptions.InvalidTimeSlotException;
 import co.edu.unbosque.sistemahorario.util.exceptions.LanzadorDeExcepcion;
 
 /**
- * Lógica de negocio de las materias y de sus horarios.
+ * Lógica de negocio de los grupos de materias y de sus horarios.
  * <p>
- * Cada {@code Materia} es un grupo concreto de una asignatura. Este servicio valida el
- * horario, evita cruces para estudiantes y profesores, y administra las inscripciones.
+ * Cada {@code Materia} es un grupo concreto de una {@code Asignatura} del catálogo. Este servicio valida el
+ * horario, evita cruces para estudiantes y profesores, y administra las inscripciones. También filtra qué
+ * grupos puede ver cada estudiante según su carrera y su semestre.
  * Es {@code @Transactional}: si algo falla a la mitad de una operación, no queda guardado nada.
  */
 @Service
@@ -47,11 +48,11 @@ public class MateriaService implements CRUDOPeration<MateriaDTO>{
 	private EstudianteRepository estRepo;
 	
 	/**
-	 * Crea un grupo de una materia.
+	 * Crea un grupo de una asignatura del catálogo.
 	 *
-	 * @param data nombre, carrera, semestre, grupo y horario (arreglos {@code inicio} y {@code fin})
-	 * @return 0 si se creó; 1 nombre con formato inválido; 2 ya existe ese grupo de la materia;
-	 *         3 semestre fuera del rango 1 a 10; 4 horario inválido; 5 número de grupo menor a 1
+	 * @param data asignatura ({@code idAsignatura}), grupo y horario (arreglos {@code inicio} y {@code fin})
+	 * @return 0 si se creó; 1 la asignatura no existe en el catálogo; 2 ya existe ese grupo de la asignatura;
+	 *         4 horario inválido; 5 número de grupo menor a 1
 	 */
 	@Override
 	public int create(MateriaDTO data) {
@@ -85,6 +86,14 @@ public class MateriaService implements CRUDOPeration<MateriaDTO>{
 		return dtoList;
 	}
 
+	/**
+	 * Lista solo los grupos que un estudiante puede ver: los de asignaturas que están en el plan de su
+	 * carrera, del semestre 1 hasta el suyo. En cada DTO se llenan {@code carrera} y {@code semestre} con los del plan
+	 * que le corresponde. Si el estudiante no existe, devuelve una lista vacía.
+	 *
+	 * @param idEst identificador del estudiante
+	 * @return lista de {@link MateriaDTO} filtrada para ese estudiante
+	 */
 	// Un estudiante solo ve grupos de materias de su carrera hasta su semestre
 	public List<MateriaDTO> getAllParaEstudiante(long idEst) {
 		List<MateriaDTO> dtoList = new ArrayList<>();
@@ -122,14 +131,14 @@ public class MateriaService implements CRUDOPeration<MateriaDTO>{
 	}
 
 	/**
-	 * Actualiza una materia. No se permite si ya tiene estudiantes inscritos, para no
+	 * Actualiza un grupo. No se permite si ya tiene estudiantes inscritos, para no
 	 * cambiarles el horario que eligieron. Si cambia el horario, se retira el profesor asignado
 	 * porque podría quedar con un cruce.
 	 *
-	 * @param id   identificador de la materia
+	 * @param id   identificador del grupo
 	 * @param data nuevos datos
-	 * @return 0 si se actualizó; 1 nombre inválido; 2 ya existe ese grupo; 3 semestre fuera de 1 a 10;
-	 *         4 la materia tiene estudiantes inscritos; 5 no se encontró la materia; 6 horario inválido;
+	 * @return 0 si se actualizó; 1 la asignatura no existe en el catálogo; 2 ya existe ese grupo de la asignatura;
+	 *         4 el grupo tiene estudiantes inscritos; 5 no se encontró el grupo; 6 horario inválido;
 	 *         7 número de grupo menor a 1
 	 */
 	@Override
@@ -189,12 +198,13 @@ public class MateriaService implements CRUDOPeration<MateriaDTO>{
 	}
 	
 	/**
-	 * Asigna un profesor a una materia, si la materia no tiene profesor y no hay cruce de horario.
+	 * Asigna un profesor a un grupo, siempre que no haya cruce de horario. Si el grupo ya tenía
+	 * otro profesor, se reemplaza; solo se rechaza si es el mismo.
 	 *
 	 * @param idProfesor identificador del profesor
-	 * @param idMateria  identificador de la materia
-	 * @return 0 si se asignó; 1 la materia ya tiene profesor; 2 el horario se cruza con el del profesor;
-	 *         3 no se encontró el profesor o la materia
+	 * @param idMateria  identificador del grupo
+	 * @return 0 si se asignó; 1 ese mismo profesor ya está asignado; 2 el horario se cruza con el del profesor;
+	 *         3 no se encontró el profesor o el grupo
 	 */
 	public int asignarProfesor(long idProfesor, long idMateria) {
 		Optional<Profesor> prof = profRepo.findById(idProfesor);
@@ -223,6 +233,12 @@ public class MateriaService implements CRUDOPeration<MateriaDTO>{
 		return 3;
 	}
 
+	/**
+	 * Quita el profesor asignado a un grupo.
+	 *
+	 * @param idMateria identificador del grupo
+	 * @return 0 si se quitó; 1 el grupo no tenía profesor; 2 no se encontró el grupo
+	 */
 	public int quitarProfesor(long idMateria) {
 		Optional<Materia> materia = materiaRepo.findById(idMateria);
 
@@ -238,15 +254,17 @@ public class MateriaService implements CRUDOPeration<MateriaDTO>{
 	}
 
 	/**
-	 * Inscribe un estudiante en un grupo de una materia.
+	 * Inscribe un estudiante en un grupo.
 	 * <p>
-	 * Reglas: no puede estar ya inscrito en ese grupo, no puede cursar dos grupos de la misma
-	 * materia y el horario no puede cruzarse con el de sus otras materias.
+	 * Reglas: la asignatura debe estar en el plan de su carrera, en su semestre o en uno anterior; no puede
+	 * estar ya inscrito en ese grupo; no puede cursar dos grupos de la misma asignatura y el horario no puede
+	 * cruzarse con el de sus otras materias.
 	 *
 	 * @param idEst     identificador del estudiante
-	 * @param idMateria identificador de la materia (grupo)
+	 * @param idMateria identificador del grupo
 	 * @return 0 si quedó inscrito; 1 ya estaba inscrito; 2 hay cruce de horario; 3 no se encontró
-	 *         el estudiante o la materia; 4 ya está inscrito en otro grupo de la misma materia
+	 *         el estudiante o el grupo; 4 ya está inscrito en otro grupo de la misma asignatura;
+	 *         5 la asignatura no corresponde a su carrera o a su semestre
 	 */
 	public int inscribirEstudiante(long idEst, long idMateria) {
 		Optional<Estudiante> est = estRepo.findById(idEst);
@@ -305,7 +323,7 @@ public class MateriaService implements CRUDOPeration<MateriaDTO>{
 	}
 
 	/**
-	 * Mueve a un estudiante de un grupo a otro de la misma materia (reubicación).
+	 * Mueve a un estudiante de un grupo a otro de la misma asignatura (reubicación).
 	 * <p>
 	 * Se valida el cruce del grupo destino contra las demás materias del estudiante, sin contar
 	 * el grupo de origen, porque ese lo va a dejar libre.
@@ -313,7 +331,7 @@ public class MateriaService implements CRUDOPeration<MateriaDTO>{
 	 * @param idEst     identificador del estudiante
 	 * @param idOrigen  grupo del que sale
 	 * @param idDestino grupo al que entra
-	 * @return 0 si se movió; 1 no estaba inscrito en el origen; 2 los grupos no son de la misma materia;
+	 * @return 0 si se movió; 1 no estaba inscrito en el origen; 2 los grupos no son de la misma asignatura;
 	 *         3 ya está en el destino; 4 el destino se cruza con otra materia suya; 5 no se encontró
 	 *         el estudiante o alguno de los grupos
 	 */
@@ -349,6 +367,14 @@ public class MateriaService implements CRUDOPeration<MateriaDTO>{
 		return 0;
 	}
 
+	/**
+	 * Busca el plan de estudios que le corresponde al estudiante para ese grupo: el de su carrera en el que la
+	 * asignatura va en su semestre o antes. Si hay varios, toma el de menor semestre.
+	 *
+	 * @param est     estudiante a revisar
+	 * @param materia grupo a revisar
+	 * @return el plan, o vacío si el estudiante no tiene carrera o semestre, o la asignatura no corresponde a su plan
+	 */
 	// Plan de la carrera del estudiante en el que la materia va en su semestre o antes
 	private Optional<PlanEstudio> planDelEstudiante(Estudiante est, Materia materia) {
 		if(est.getCarrera() == null || est.getSemestre() == null)
@@ -385,22 +411,13 @@ public class MateriaService implements CRUDOPeration<MateriaDTO>{
 		return true;
 	}
 
-	/**
-	 * Convierte un DTO a entidad para guardarlo.
-	 *
-	 * @param data DTO con los datos de la materia
-	 * @return la entidad nueva (sin id, sin profesor y sin estudiantes)
-	 */
-	private Materia toEntity(MateriaDTO data) {
-		Materia nueva = new Materia(data.getInicio(), data.getFin(), data.getNombreMateria(), data.getCarrera(), data.getSemestre());
-		nueva.setGrupo(data.getGrupo());
-		return nueva;
-	}
+
 
 	/**
-	 * Convierte una materia a DTO. El profesor y los estudiantes se reducen a sus ids.
+	 * Convierte un grupo a DTO. Incluye el nombre y los planes de la asignatura; el profesor y
+	 * los estudiantes se reducen a sus ids.
 	 *
-	 * @param entity materia a convertir
+	 * @param entity grupo a convertir
 	 * @return el DTO correspondiente
 	 */
 	private MateriaDTO toDTO(Materia entity) {

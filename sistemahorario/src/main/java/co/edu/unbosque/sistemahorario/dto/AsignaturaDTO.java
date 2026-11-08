@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Objeto de transferencia de una asignatura del catálogo, con sus planes de estudio (carrera y semestre).
+ */
 public class AsignaturaDTO {
 
 	private long id;
@@ -14,6 +17,13 @@ public class AsignaturaDTO {
 		super();
 	}
 
+	/**
+	 * Crea el DTO con todos sus datos.
+	 *
+	 * @param id     identificador de la asignatura
+	 * @param nombre nombre de la asignatura
+	 * @param planes carreras y semestres en los que aparece
+	 */
 	public AsignaturaDTO(long id, String nombre, List<PlanEstudioDTO> planes) {
 		this.id = id;
 		this.nombre = nombre;

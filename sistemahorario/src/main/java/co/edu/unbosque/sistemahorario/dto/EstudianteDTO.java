@@ -7,14 +7,18 @@ import java.util.Objects;
 import co.edu.unbosque.sistemahorario.util.enums.Carrera;
 
 /**
- * Objeto de transferencia de un estudiante. En lugar de las materias completas lleva solo sus ids
- * ({@code listaIdMateriasInscritas}), lo que evita enviar objetos anidados y referencias circulares.
+ * Objeto de transferencia de un estudiante, con su carrera y su semestre. En lugar de las materias
+ * completas lleva solo sus ids ({@code listaIdMateriasInscritas}), lo que evita enviar objetos anidados
+ * y referencias circulares.
  */
 public class EstudianteDTO extends UsuarioDTO{
 	
 	private List<Long> listaIdMateriasInscritas = new ArrayList<>();
 	private String nombre;
 	private Carrera carrera;
+	/**
+	 * Semestre que cursa el estudiante (de 1 a 12).
+	 */
 	private Short semestre;
 	
 	public EstudianteDTO() {
