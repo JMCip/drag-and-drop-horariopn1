@@ -19,14 +19,13 @@ export class MateriaService {
    */
   private readonly urlBase = 'http://localhost:8080/materia';
 
-  create(data: GrupoMateria): Observable<string> {
   /**
    * Crea un grupo de una materia.
    *
    * @param data datos de la materia
    * @returns observable con el mensaje de respuesta del back
    */
-  create(data: MateriaDTO): Observable<string> {
+  create(data: GrupoMateria): Observable<string> {
     return this.http.post(`${this.urlBase}/crear`, null, { params: this.aParams(data), responseType: 'text' });
   }
 

@@ -7,6 +7,7 @@
 .estado-vacio-inscrito {
   background: #FFFFFF;
   border: 1px solid var(--color-borde);
+  border-top: 4px solid var(--color-naranja);
   border-radius: var(--radius-card);
   padding: 48px;
   text-align: center;
@@ -16,8 +17,21 @@
   gap: 12px;
 }
 
-.estado-vacio-inscrito i { font-size: 40px; color: var(--color-texto-sec); }
-.cabecera-inscrito { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.estado-vacio-inscrito i { font-size: 40px; color: var(--color-acento); }
+.estado-vacio-inscrito p { color: var(--color-texto-sec); max-width: 40em; }
+
+.cabecera-inscrito {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 3px solid var(--color-naranja);
+}
+
+.cabecera-inscrito h2 { font-size: 28px; font-weight: 700; }
+.cabecera-inscrito p { color: var(--color-texto-sec); margin-top: 4px; }
 
 .tarjeta-tabla-resumen {
   background: #FFFFFF;
@@ -27,18 +41,35 @@
 }
 
 .tabla-resumen { width: 100%; border-collapse: collapse; text-align: left; }
-.tabla-resumen th, .tabla-resumen td { padding: 12px 16px; border-bottom: 1px solid var(--color-borde); }
+
+.tabla-resumen th {
+  background: var(--color-acento);
+  color: #FFFFFF;
+  font-weight: 600;
+  padding: 12px 16px;
+}
+
+.tabla-resumen td { padding: 12px 16px; border-bottom: 1px solid var(--color-borde-suave); }
+.tabla-resumen tbody tr:nth-child(even) { background: var(--color-superficie); }
+.tabla-resumen tbody tr:hover { background: var(--color-ocupada-bg); }
 
 .chip-franja {
-  background: var(--color-fondo);
+  background: #FFFFFF;
   border: 1px solid var(--color-borde);
   padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 11px;
+  border-radius: 2px;
+  font-size: 12px;
   margin-right: 4px;
+  display: inline-block;
 }
 
 .acciones-descarga {
   display: flex;
   gap: 8px;
+}
+
+@media (max-width: 700px) {
+  .contenedor-inscrito { padding: 16px; }
+  .cabecera-inscrito { flex-direction: column; align-items: flex-start; }
+  .tarjeta-tabla-resumen { overflow-x: auto; }
 }

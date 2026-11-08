@@ -8,7 +8,7 @@
 .layout-armar {
   flex: 1;
   display: grid;
-  grid-template-columns: 310px 1fr;
+  grid-template-columns: 320px 1fr;
   gap: 16px;
   padding: 16px 24px;
   min-height: 0;
