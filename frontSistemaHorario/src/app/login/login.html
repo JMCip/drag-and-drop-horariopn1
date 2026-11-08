@@ -1,11 +1,14 @@
 <div class="contenedor-login">
+  <aside class="panel-institucional">
+    <div class="marco-logo">
+      <img class="logo-institucional" src="logoU.webp" alt="Universidad El Bosque" />
+    </div>
+  </aside>
+
   <div class="tarjeta-login">
     <div class="encabezado-login">
-      <div class="icono-institucional">
-        <i class="fa-solid fa-table-cells"></i>
-      </div>
       <h1 class="titulo-login">Editor de Horarios</h1>
-      <p class="subtitulo-login">Programa Ingeniería de Sistemas · Universidad El Bosque</p>
+      <p class="subtitulo-login">Universidad El Bosque</p>
     </div>
 
     <div class="alerta-error" *ngIf="mensajeError" role="alert">
@@ -52,9 +55,5 @@
         <span>{{ cargando ? 'Validando...' : 'Iniciar sesión' }}</span>
       </button>
     </form>
-
-    <p class="nota-secretaria">
-      ¿No tienes cuenta? Contacta a la <strong>Secretaría Académica</strong>.
-    </p>
   </div>
 </div>
