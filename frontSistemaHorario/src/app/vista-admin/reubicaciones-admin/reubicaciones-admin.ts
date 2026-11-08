@@ -63,7 +63,7 @@ export class ReubicacionesAdmin implements OnInit {
   }
 
   /**
-   * Otros grupos de la misma materia que el grupo de origen (posibles destinos).
+   * Otros grupos de la misma asignatura que el grupo de origen (posibles destinos).
    */
   get gruposDestino(): MateriaDTO[] {
     const origen = this.materias.find(m => m.id === this.idOrigen);

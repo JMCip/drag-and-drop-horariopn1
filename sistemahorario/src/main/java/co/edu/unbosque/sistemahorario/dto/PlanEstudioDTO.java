@@ -4,6 +4,9 @@ import java.util.Objects;
 
 import co.edu.unbosque.sistemahorario.util.enums.Carrera;
 
+/**
+ * Objeto de transferencia de un plan de estudio: la carrera y el semestre en el que una asignatura aparece en ella.
+ */
 public class PlanEstudioDTO {
 
 	private Carrera carrera;
@@ -13,6 +16,12 @@ public class PlanEstudioDTO {
 		super();
 	}
 
+	/**
+	 * Crea el DTO con todos sus datos.
+	 *
+	 * @param carrera  carrera del plan
+	 * @param semestre semestre en el que va la asignatura
+	 */
 	public PlanEstudioDTO(Carrera carrera, short semestre) {
 		this.carrera = carrera;
 		this.semestre = semestre;

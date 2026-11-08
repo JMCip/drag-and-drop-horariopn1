@@ -5,6 +5,8 @@ package co.edu.unbosque.sistemahorario.dto;
  * <p>
  * Lleva el token JWT y los datos que el front necesita para decidir qué vista mostrar:
  * id, rol ({@code ADMIN}, {@code PROFESOR} o {@code ESTUDIANTE}), nombre y correo del usuario.
+ * Si el usuario es un estudiante, también lleva su carrera y su semestre; para los demás roles
+ * esos dos campos quedan en {@code null}.
  */
 public class AuthResponse {
     private long id;
@@ -12,7 +14,13 @@ public class AuthResponse {
     private String rol;
     private String nombre;
     private String correo;
+    /**
+     * Carrera del estudiante (por ejemplo `ING_SISTEMAS`). Solo se llena si el usuario es estudiante.
+     */
     private String carrera;
+    /**
+     * Semestre del estudiante. Solo se llena si el usuario es estudiante.
+     */
     private Short semestre;
 
     public AuthResponse(long id, String token, String rol, String nombre, String correo) {

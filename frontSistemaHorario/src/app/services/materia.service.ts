@@ -20,9 +20,9 @@ export class MateriaService {
   private readonly urlBase = 'http://localhost:8080/materia';
 
   /**
-   * Crea un grupo de una materia.
+   * Crea un grupo de una asignatura del catálogo.
    *
-   * @param data datos de la materia
+   * @param data asignatura, grupo y horario del grupo
    * @returns observable con el mensaje de respuesta del back
    */
   create(data: GrupoMateria): Observable<string> {
@@ -49,6 +49,13 @@ export class MateriaService {
     return this.http.delete(`${this.urlBase}/eliminar`, { params, responseType: 'text' });
   }
 
+  /**
+   * Actualiza un grupo. El back lo rechaza si ya tiene estudiantes inscritos.
+   *
+   * @param id identificador del grupo
+   * @param data nuevos datos (asignatura, grupo y horario)
+   * @returns observable con el mensaje de respuesta del back
+   */
   updateById(id: number, data: GrupoMateria): Observable<string> {
     const params = this.aParams(data).set('id', id);
     return this.http.put(`${this.urlBase}/actualizar`, null, { params, responseType: 'text' });
@@ -66,6 +73,12 @@ export class MateriaService {
     return this.http.put(`${this.urlBase}/asignarprofesor`, null, { params, responseType: 'text' });
   }
 
+  /**
+   * Quita el profesor asignado a un grupo (solo ADMIN).
+   *
+   * @param idMateria identificador del grupo
+   * @returns observable con el mensaje de respuesta del back
+   */
   quitarProfesor(idMateria: number): Observable<string> {
     const params = new HttpParams().set('idMateria', idMateria);
     return this.http.put(`${this.urlBase}/quitarprofesor`, null, { params, responseType: 'text' });
@@ -178,14 +191,22 @@ export class MateriaService {
       .join(' · ');
   }
 
+  /**
+   * Genera un texto con las carreras y semestres de una asignatura, por ejemplo `Medicina (3°), Física (2°)`.
+   *
+   * @param planes planes de estudio de la asignatura
+   * @returns los planes como texto
+   */
   formatearPlanes(planes: PlanEstudio[]): string {
     return planes.map(p => `${ETIQUETAS_CARRERA[p.carrera] ?? p.carrera} (${p.semestre}°)`).join(', ');
   }
 
   /**
-   * Convierte una materia del back en una sección lista para mostrar y arrastrar.
+   * Convierte un grupo del back en una sección lista para mostrar y arrastrar.
+   * Si el back envió carrera y semestre (consulta de un estudiante) se usan esos; si no, se muestran
+   * todos los planes y el semestre más bajo.
    *
-   * @param dto materia tal como la devuelve el back
+   * @param dto grupo tal como lo devuelve el back
    * @param nombreDocente nombre del profesor a mostrar
    * @returns la sección equivalente (el código se arma como `MAT-<id>`)
    */
@@ -214,8 +235,8 @@ export class MateriaService {
   }
 
   /**
-   * Convierte la materia en parámetros HTTP. Spring recibe los arreglos repitiendo el parámetro
-   * (`inicio=7&inicio=-1&...`), por eso se usa `append` para cada hora.
+   * Convierte el grupo en parámetros HTTP: `idAsignatura`, `grupo` y los arreglos `inicio` y `fin`.
+   * Spring recibe los arreglos repitiendo el parámetro (`inicio=7&inicio=-1&...`), por eso se usa `append` para cada hora.
    */
   // Spring recibe los arreglos repitiendo el parámetro: inicio=7&inicio=-1&...
   private aParams(data: GrupoMateria): HttpParams {

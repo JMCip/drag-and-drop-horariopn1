@@ -20,16 +20,16 @@ export class SidebarSecciones {
   private horarioService = inject(HorarioService);
 
   /**
-   * Texto del buscador (nombre o código de la materia).
-   */
-  /**
-   * Secciones que ya están en la grilla; se ocultan de la lista.
-   */
-  /**
    * Todas las secciones disponibles.
    */
   @Input() todasLasSecciones: SeccionModel[] = [];
+  /**
+   * Secciones que ya están en la grilla; se ocultan de la lista.
+   */
   @Input() seccionesUbicadas: SeccionModel[] = [];
+  /**
+   * Texto del buscador (nombre o código de la materia).
+   */
 
   textoBusqueda = '';
   /**
@@ -41,6 +41,9 @@ export class SidebarSecciones {
    */
   materiasPlegadas: Record<string, boolean> = {};
 
+  /**
+   * Semestres que tienen secciones disponibles, sin repetir y en orden; alimenta el filtro de semestre.
+   */
   get semestresDisponibles(): number[] {
     return [...new Set(this.todasLasSecciones.map(s => s.semestre))].sort((a, b) => a - b);
   }

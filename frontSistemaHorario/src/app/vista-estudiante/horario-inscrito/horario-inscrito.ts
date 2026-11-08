@@ -4,12 +4,18 @@ import { SeccionModel, FranjaHoraria } from '../../models/seccion.model';
 import { DIAS_MATERIA } from '../../models/materia.model';
 import { AuthService } from '../../services/auth.service';
 
+/**
+ * Horas de inicio que se dibujan en la grilla del PDF: de 7 a 21.
+ */
 const HORAS_GRILLA = Array.from({ length: 15 }, (_, i) => i + 7);
+/**
+ * Colores (RGB) con los que se pinta cada materia en la grilla del PDF.
+ */
 const COLORES_PDF: [number, number, number][] = [[214, 234, 248], [213, 245, 227], [252, 243, 207], [250, 219, 216], [232, 218, 239], [209, 242, 235]];
 
 /**
  * Pestaña "Mi horario inscrito": lista las secciones en las que el estudiante ya está inscrito
- * y permite descargar el horario como archivo JSON.
+ * y permite descargar el horario como archivo JSON o como PDF.
  */
 @Component({
   selector: 'app-horario-inscrito',
@@ -20,20 +26,26 @@ const COLORES_PDF: [number, number, number][] = [[214, 234, 248], [213, 245, 227
 })
 export class HorarioInscrito {
   /**
-   * Descarga el horario inscrito como el archivo `mi_horario_el_bosque.json`.
-   */
-  /**
-   * Se emite cuando el estudiante pide volver a la pestaña de armar horario.
-   */
-  /**
    * Secciones inscritas que se muestran.
    */
   @Input() horarioInscrito: SeccionModel[] = [];
+  /**
+   * Se emite cuando el estudiante pide volver a la pestaña de armar horario.
+   */
   @Output() irAArmar = new EventEmitter<void>();
+  /**
+   * Servicio de sesión, para poner el nombre y el correo del estudiante en el PDF.
+   */
 
   private authService = inject(AuthService);
+  /**
+   * Indica que se está generando el PDF (para deshabilitar el botón).
+   */
   generandoPDF = false;
 
+  /**
+   * Descarga el horario inscrito como el archivo `mi_horario_el_bosque.json`.
+   */
   descargarJSON(): void {
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(this.horarioInscrito, null, 2));
     const anchor = document.createElement('a');
@@ -42,6 +54,9 @@ export class HorarioInscrito {
     anchor.click();
   }
 
+  /**
+   * Genera el PDF del horario y lo descarga como `mi_horario_el_bosque.pdf`.
+   */
   async descargarPDF(): Promise<void> {
     this.generandoPDF = true;
     try {
@@ -52,6 +67,13 @@ export class HorarioInscrito {
     }
   }
 
+  /**
+   * Arma el PDF en hoja horizontal: una tabla con las materias inscritas y, en una segunda página, la grilla semanal
+   * con cada materia en un color y la hora de almuerzo marcada. Las librerías `jspdf` y `jspdf-autotable` se cargan solo
+   * al pulsar el botón, para no pesar en la carga inicial.
+   *
+   * @returns el documento PDF listo para guardar
+   */
   // Las librerias se cargan solo al pulsar el boton, para no pesar en la carga inicial
   async crearPDF() {
     const [{ jsPDF }, { autoTable }] = await Promise.all([import('jspdf'), import('jspdf-autotable')]);
@@ -109,6 +131,10 @@ Grupo ${bloque.s.grupo}`, rowSpan: duracion, styles: { fillColor: color.get(bloq
     return doc;
   }
 
+  /**
+   * @param h hora
+   * @returns la hora con dos dígitos, por ejemplo 8 se muestra como `08`
+   */
   private dosDigitos(h: number): string {
     return h < 10 ? `0${h}` : `${h}`;
   }

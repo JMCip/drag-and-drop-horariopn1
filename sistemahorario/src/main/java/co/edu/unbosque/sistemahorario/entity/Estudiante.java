@@ -43,6 +43,10 @@ public class Estudiante extends Usuario{
 	@Enumerated(EnumType.STRING)
 	private Carrera carrera;
 	
+	/**
+	 * Semestre que cursa (de 1 a 12). Junto con la carrera define qué asignaturas puede ver e inscribir:
+	 * las de su plan de estudios hasta su semestre.
+	 */
 	private Short semestre;
 	
 	public Estudiante() {

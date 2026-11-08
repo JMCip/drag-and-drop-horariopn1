@@ -29,20 +29,20 @@ export class Topbar {
   private router = inject(Router);
 
   /**
-   * Datos del usuario con sesión iniciada (para mostrar su nombre y rol).
-   */
-  /**
-   * Se emite con el id de la pestaña cuando el usuario elige una.
-   */
-  /**
-   * Id de la pestaña seleccionada actualmente.
-   */
-  /**
    * Pestañas a mostrar.
    */
   @Input() pestanas: PestanaNav[] = [];
+  /**
+   * Id de la pestaña seleccionada actualmente.
+   */
   @Input() pestanaActiva: string = '';
+  /**
+   * Se emite con el id de la pestaña cuando el usuario elige una.
+   */
   @Output() cambiarPestana = new EventEmitter<string>();
+  /**
+   * Datos del usuario con sesión iniciada (para mostrar su nombre y rol).
+   */
 
   usuario = this.authService.obtenerUsuarioActual();
 

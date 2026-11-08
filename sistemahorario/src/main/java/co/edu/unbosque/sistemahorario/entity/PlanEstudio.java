@@ -14,21 +14,39 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+/**
+ * En qué semestre va una asignatura dentro de una carrera (tabla {@code plan_estudio}).
+ * <p>
+ * Una misma asignatura puede tener varios planes, uno por cada carrera que la incluye. En la base de datos la
+ * combinación (asignatura, carrera, semestre) es única.
+ */
 // En que semestre va una asignatura dentro de una carrera
 @Entity
 @Table(name = "plan_estudio")
 public class PlanEstudio {
 
+	/**
+	 * Identificador autogenerado por la base de datos.
+	 */
 	private @Id @GeneratedValue(strategy = GenerationType.IDENTITY) long id;
 
+	/**
+	 * Asignatura a la que pertenece este plan (columna {@code asignatura_id}, obligatoria).
+	 */
 	@ManyToOne(optional = false)
 	@JoinColumn(name = "asignatura_id", nullable = false)
 	private Asignatura asignatura;
 
+	/**
+	 * Carrera del plan. Se guarda como texto (por ejemplo {@code ING_SISTEMAS}).
+	 */
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private Carrera carrera;
 
+	/**
+	 * Semestre en el que la carrera ofrece la asignatura.
+	 */
 	@Column(nullable = false)
 	private short semestre;
 
@@ -36,6 +54,13 @@ public class PlanEstudio {
 		super();
 	}
 
+	/**
+	 * Crea un plan de estudio.
+	 *
+	 * @param asignatura asignatura del plan
+	 * @param carrera    carrera a la que pertenece el plan
+	 * @param semestre   semestre en el que va la asignatura
+	 */
 	public PlanEstudio(Asignatura asignatura, Carrera carrera, short semestre) {
 		this.asignatura = asignatura;
 		this.carrera = carrera;

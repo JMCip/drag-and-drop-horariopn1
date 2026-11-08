@@ -9,11 +9,17 @@ export const DIAS_MATERIA = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie'] as const;
  */
 export const SIN_CLASE = -1;
 
+/**
+ * Carrera y semestre en los que una asignatura aparece en el plan de estudios.
+ */
 export interface PlanEstudio {
   carrera: Carrera;
   semestre: number;
 }
 
+/**
+ * Asignatura del catálogo, con los planes (carrera y semestre) en los que aparece.
+ */
 // Materia del catálogo (plan de estudios de cada carrera)
 export interface AsignaturaDTO {
   id: number;
@@ -21,12 +27,13 @@ export interface AsignaturaDTO {
   planes: PlanEstudio[];
 }
 
-// Un grupo de una materia del catálogo, con horario y profesor
 /**
- * Un grupo de una materia, tal como lo devuelve el back (`MateriaDTO`).
+ * Un grupo de una asignatura del catálogo, tal como lo devuelve el back (`MateriaDTO`).
  * `inicio` y `fin` tienen 5 posiciones (lunes a viernes) con la hora de entrada y de salida; `-1` = sin clase.
- * El profesor y los estudiantes llegan solo como ids.
+ * El profesor y los estudiantes llegan solo como ids. `planes` indica en qué carreras y semestres aparece la
+ * asignatura; `carrera` y `semestre` solo vienen cuando consulta un estudiante.
  */
+// Un grupo de una materia del catálogo, con horario y profesor
 export interface MateriaDTO {
   id?: number;
   idAsignatura: number;
@@ -42,6 +49,9 @@ export interface MateriaDTO {
   semestre?: number | null;
 }
 
+/**
+ * Datos que se envían al back para crear o editar un grupo: asignatura, número de grupo y horario.
+ */
 export interface GrupoMateria {
   idAsignatura: number;
   grupo: number;
