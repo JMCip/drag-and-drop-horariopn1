@@ -1,0 +1,105 @@
+<section class="seccion-panel">
+  <div class="fila-metricas">
+    <div class="tarjeta-resumen">
+      <span class="valor-resumen tabular-nums">{{ totalUsuarios }}</span>
+      <span class="etiqueta-resumen">Total Usuarios</span>
+    </div>
+    <div class="tarjeta-resumen">
+      <span class="valor-resumen tabular-nums">{{ estudiantes.length }}</span>
+      <span class="etiqueta-resumen">Estudiantes</span>
+    </div>
+    <div class="tarjeta-resumen">
+      <span class="valor-resumen tabular-nums">{{ profesores.length }}</span>
+      <span class="etiqueta-resumen">Profesores</span>
+    </div>
+    <div class="tarjeta-resumen">
+      <span class="valor-resumen tabular-nums">{{ totalAdmins }}</span>
+      <span class="etiqueta-resumen">Admins</span>
+    </div>
+  </div>
+
+  <div class="tarjeta-listados">
+    <div class="sub-pestanas">
+      <button type="button" [class.activa]="subPestanaListado === 'estudiantes'" (click)="subPestanaListado = 'estudiantes'">Estudiantes</button>
+      <button type="button" [class.activa]="subPestanaListado === 'profesores'" (click)="subPestanaListado = 'profesores'">Profesores</button>
+      <button type="button" [class.activa]="subPestanaListado === 'materias'" (click)="subPestanaListado = 'materias'">Materias</button>
+    </div>
+
+    <div class="alerta-admin" *ngIf="mensaje" [class.exito]="mensaje.exito" [class.error]="!mensaje.exito">{{ mensaje.texto }}</div>
+
+    <table class="tabla-admin" *ngIf="subPestanaListado === 'estudiantes'">
+      <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Correo</th>
+        <th>Carrera</th>
+        <th>Semestre</th>
+        <th></th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let e of estudiantes">
+        <td>{{ e.nombre }}</td>
+        <td>{{ e.correo }}</td>
+        <td>{{ etiquetaCarrera(e) }} · {{ e.listaIdMateriasInscritas.length }} materias inscritas</td>
+        <td>
+          <div class="editar-semestre" *ngIf="e.id !== undefined">
+            <select [(ngModel)]="semestreEditado[e.id]" [attr.aria-label]="'Semestre de ' + e.nombre">
+              <option [ngValue]="null" disabled>Sin semestre</option>
+              <option *ngFor="let s of semestres" [ngValue]="s">{{ s }}</option>
+            </select>
+            <button type="button" class="btn btn-secundario" (click)="guardarSemestre(e)"
+                    [disabled]="semestreEditado[e.id] === (e.semestre ?? null)">Guardar</button>
+          </div>
+        </td>
+        <td><button type="button" class="btn btn-peligro" (click)="eliminarEstudiante(e)">Eliminar</button></td>
+      </tr>
+      <tr *ngIf="estudiantes.length === 0">
+        <td colspan="5">No hay registros.</td>
+      </tr>
+      </tbody>
+    </table>
+
+    <table class="tabla-admin" *ngIf="subPestanaListado === 'profesores'">
+      <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Correo</th>
+        <th>Detalle</th>
+        <th></th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let p of profesores">
+        <td>{{ p.nombre }}</td>
+        <td>{{ p.correo }}</td>
+        <td>Docente · {{ p.listaIdMaterias.length }} grupos</td>
+        <td><button type="button" class="btn btn-peligro" (click)="eliminarProfesor(p)">Eliminar</button></td>
+      </tr>
+      <tr *ngIf="profesores.length === 0">
+        <td colspan="4">No hay registros.</td>
+      </tr>
+      </tbody>
+    </table>
+
+    <table class="tabla-admin" *ngIf="subPestanaListado === 'materias'">
+      <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Docente</th>
+        <th>Detalle / Carrera</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let fila of filas">
+        <td>{{ fila.nombre }}</td>
+        <td>{{ fila.segunda }}</td>
+        <td>{{ fila.detalle }}</td>
+      </tr>
+      <tr *ngIf="filas.length === 0">
+        <td colspan="3">No hay registros.</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

@@ -1,0 +1,52 @@
+.contenedor-materias {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.fila-doble {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.fila-dia {
+  display: grid;
+  grid-template-columns: 48px 1fr 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.fila-dia span {
+  font-weight: 700;
+  color: var(--color-acento);
+}
+
+.asignar-profesor {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.asignar-profesor select {
+  padding: 7px;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radius-btn);
+}
+
+.acciones-form,
+.acciones-fila {
+  display: flex;
+  gap: 8px;
+}
+
+.docente-actual {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.aviso-edicion {
+  font-size: 14px;
+  color: var(--color-texto-sec);
+  margin: 4px 0 12px;
+}

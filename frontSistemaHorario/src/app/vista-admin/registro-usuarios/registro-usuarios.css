@@ -1,0 +1,124 @@
+.tarjeta-formulario-admin {
+  background: #FFFFFF;
+  border: 1px solid var(--color-borde);
+  border-top: 4px solid var(--color-naranja);
+  border-radius: var(--radius-card);
+  padding: 28px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.tarjeta-formulario-admin h2 {
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+
+.sub-form {
+  font-size: 14px;
+  color: var(--color-texto-sec);
+}
+
+.selector-segmentado {
+  display: flex;
+  margin: 18px 0;
+}
+
+.selector-segmentado button {
+  flex: 1;
+  padding: 9px 16px;
+  border: 1px solid var(--color-acento);
+  background: #FFFFFF;
+  color: var(--color-acento);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 15px;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.selector-segmentado button:first-child {
+  border-radius: var(--radius-btn) 0 0 var(--radius-btn);
+}
+
+.selector-segmentado button:last-child {
+  border-radius: 0 var(--radius-btn) var(--radius-btn) 0;
+  margin-left: -1px;
+}
+
+.selector-segmentado button:hover:not(.activo) {
+  background: var(--color-ocupada-bg);
+}
+
+.selector-segmentado button.activo {
+  background: var(--color-acento);
+  color: #FFFFFF;
+}
+
+.form-registro {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.campo label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.campo small {
+  font-size: 13px;
+  color: var(--color-texto-sec);
+}
+
+.campo input, .campo select {
+  padding: 10px 12px;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radius-btn);
+  font-size: 15px;
+}
+
+.campo input:focus, .campo select:focus {
+  outline: none;
+  border-color: var(--color-acento);
+  box-shadow: 0 0 0 3px rgba(245, 132, 31, 0.28);
+}
+
+.checklist-pass {
+  list-style: none;
+  font-size: 13px;
+  color: var(--color-texto-sec);
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.checklist-pass li.cumplido {
+  color: var(--color-ocupada);
+  font-weight: 700;
+}
+
+.alerta-admin {
+  padding: 10px 14px;
+  border-radius: var(--radius-btn);
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.alerta-admin.error {
+  background: var(--color-conflicto-bg);
+  color: var(--color-conflicto);
+  border: 1px solid var(--color-conflicto);
+}
+
+.alerta-admin.exito {
+  background: var(--color-ocupada-bg);
+  color: var(--color-acento);
+  border: 1px solid var(--color-ocupada);
+}

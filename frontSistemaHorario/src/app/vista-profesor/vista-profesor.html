@@ -1,0 +1,10 @@
+<app-topbar
+  [pestanas]="pestanas"
+  [pestanaActiva]="pestanaActiva"
+  (cambiarPestana)="pestanaActiva = $event">
+</app-topbar>
+
+<main class="contenedor-profesor">
+  <app-cronograma-profesor *ngIf="pestanaActiva === 'horario'"></app-cronograma-profesor>
+  <app-materias-grupos *ngIf="pestanaActiva === 'grupos'"></app-materias-grupos>
+</main>

@@ -1,0 +1,30 @@
+<section class="tarjeta-reubicacion">
+  <h3>Mover estudiante de grupo (RF17)</h3>
+  <div class="campo">
+    <label for="estudianteInput">Estudiante</label>
+    <select id="estudianteInput" [(ngModel)]="idEstudiante" (ngModelChange)="cambiarEstudiante()">
+      <option [ngValue]="null">Elegir estudiante</option>
+      <option *ngFor="let e of estudiantes" [ngValue]="e.id">{{ e.nombre }} ({{ e.correo }})</option>
+    </select>
+  </div>
+  <div class="campo">
+    <label for="origenInput">Materia y grupo origen</label>
+    <select id="origenInput" [(ngModel)]="idOrigen" (ngModelChange)="idDestino = null">
+      <option [ngValue]="null">Elegir grupo de origen</option>
+      <option *ngFor="let m of materiasDelEstudiante" [ngValue]="m.id">{{ etiquetaGrupo(m) }}</option>
+    </select>
+  </div>
+  <div class="campo">
+    <label for="destinoInput">Grupo destino (misma materia)</label>
+    <select id="destinoInput" [(ngModel)]="idDestino">
+      <option [ngValue]="null">Elegir grupo de destino</option>
+      <option *ngFor="let m of gruposDestino" [ngValue]="m.id">{{ etiquetaGrupo(m) }}</option>
+    </select>
+  </div>
+
+  <div class="alerta-admin" *ngIf="resultadoReubicacion" [ngClass]="resultadoReubicacion.exito ? 'exito' : 'error'">
+    {{ resultadoReubicacion.mensaje }}
+  </div>
+
+  <button type="button" class="btn btn-primario" (click)="moverEstudiante()">Mover estudiante</button>
+</section>

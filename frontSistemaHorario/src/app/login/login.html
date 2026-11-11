@@ -1,0 +1,59 @@
+<div class="contenedor-login">
+  <aside class="panel-institucional">
+    <div class="marco-logo">
+      <img class="logo-institucional" src="logoU.webp" alt="Universidad El Bosque" />
+    </div>
+  </aside>
+
+  <div class="tarjeta-login">
+    <div class="encabezado-login">
+      <h1 class="titulo-login">Editor de Horarios</h1>
+      <p class="subtitulo-login">Universidad El Bosque</p>
+    </div>
+
+    <div class="alerta-error" *ngIf="mensajeError" role="alert">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <span>{{ mensajeError }}</span>
+    </div>
+
+    <form (ngSubmit)="iniciarSesion()" class="formulario-login">
+      <div class="grupo-campo">
+        <label for="correoInput">Correo institucional</label>
+        <input
+          id="correoInput"
+          type="email"
+          name="correo"
+          [(ngModel)]="correo"
+          placeholder="nombre@unbosque.edu.co"
+          [disabled]="cargando"
+          required />
+      </div>
+
+      <div class="grupo-campo">
+        <label for="passInput">Contraseña</label>
+        <div class="input-con-icono">
+          <input
+            id="passInput"
+            [type]="mostrarPass ? 'text' : 'password'"
+            name="contrasena"
+            [(ngModel)]="contrasena"
+            placeholder="••••••••"
+            [disabled]="cargando"
+            required />
+          <button
+            type="button"
+            class="btn-ojo"
+            (click)="mostrarPass = !mostrarPass"
+            aria-label="Mostrar u ocultar contraseña">
+            <i class="fa-regular" [class.fa-eye]="!mostrarPass" [class.fa-eye-slash]="mostrarPass"></i>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primario btn-full" [disabled]="cargando">
+        <i *ngIf="cargando" class="fa-solid fa-circle-notch fa-spin"></i>
+        <span>{{ cargando ? 'Validando...' : 'Iniciar sesión' }}</span>
+      </button>
+    </form>
+  </div>
+</div>
